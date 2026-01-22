@@ -740,4 +740,182 @@
                         td.innerHTML = '<input type="checkbox" disabled style="opacity: 0.2;">';
                     } else {
                         const checked = completions[`${habit.id}-${d}`] ? 'checked' : '';
-                        td.innerHTML = `<input type="checkbox" ${checked} onchange="toggleCell('
+                        td.innerHTML = `<input type="checkbox" ${checked} onchange="toggleCell('${habit.id}', ${d})">`;
+                    }
+                    tr.appendChild(td);
+                }
+
+                const actionsTd = document.createElement('td');
+                actionsTd.className = 'actions-col';
+                actionsTd.innerHTML = `
+                    <button class="action-btn edit-btn" onclick="openHabitModal('${habit.id}')">Edit</button>
+                    <button class="action-btn delete-btn" onclick="deleteHabit('${habit.id}')">Del</button>
+                `;
+                tr.appendChild(actionsTd);
+
+                dailyBody.appendChild(tr);
+            });
+
+            updateAnalytics();
+        }
+
+        function updateAnalytics() {
+            const stats = habits.map(habit => {
+                const habitCreatedDate = new Date(habit.created_at);
+                const habitCreatedDay = habitCreatedDate.getDate();
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                const habitMonth = habitCreatedDate.getMonth();
+                const habitYear = habitCreatedDate.getFullYear();
+                
+                const isCurrentMonth = habitYear === currentYear && habitMonth === currentMonth;
+                const startDay = isCurrentMonth ? habitCreatedDay : 1;
+                const validDays = daysInMonth - startDay + 1;
+
+                let count = 0;
+                for (let d = startDay; d <= daysInMonth; d++) {
+                    if (completions[`${habit.id}-${d}`]) count++;
+                }
+                
+                const pct = validDays > 0 ? Math.round((count / validDays) * 100) : 0;
+                return { name: habit.name, count, pct, validDays };
+            });
+
+            if (stats.length === 0) {
+                document.getElementById('overallVal').textContent = '0%';
+                document.getElementById('bestName').textContent = 'No habits yet';
+                document.getElementById('worstName').textContent = 'Add habits to start';
+                return;
+            }
+
+            const totalDone = stats.reduce((sum, s) => sum + s.count, 0);
+            const totalPossible = stats.reduce((sum, s) => sum + s.validDays, 0);
+            const overallPct = totalPossible > 0 ? ((totalDone / totalPossible) * 100).toFixed(1) : 0;
+
+            document.getElementById('overallVal').textContent = overallPct + '%';
+
+            const sortedStats = [...stats].sort((a, b) => b.pct - a.pct);
+            const best = sortedStats[0];
+            const worst = sortedStats[sortedStats.length - 1];
+
+            document.getElementById('bestName').textContent = best.name;
+            document.getElementById('bestScore').textContent = `${best.pct}% complete`;
+            document.getElementById('worstName').textContent = worst.name;
+            document.getElementById('worstScore').textContent = `${worst.pct}% complete`;
+
+            // Line Chart - Daily Performance
+            const dailyPerformance = Array.from({length: daysInMonth}, (_, i) => {
+                const day = i + 1;
+                const dayHabits = habits.filter(h => {
+                    const createdDay = new Date(h.created_at).getDate();
+                    const createdMonth = new Date(h.created_at).getMonth();
+                    const createdYear = new Date(h.created_at).getFullYear();
+                    const now = new Date();
+                    return !(createdYear === now.getFullYear() && createdMonth === now.getMonth() && day < createdDay);
+                });
+                const completed = dayHabits.filter(h => completions[`${h.id}-${day}`]).length;
+                return dayHabits.length > 0 ? (completed / dayHabits.length) * 100 : 0;
+            });
+
+            if (charts.lineChart) charts.lineChart.destroy();
+            charts.lineChart = new Chart(document.getElementById('lineChart'), {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: daysInMonth}, (_, i) => i + 1),
+                    datasets: [{
+                        data: dailyPerformance,
+                        borderColor: '#4f46e5',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: v => v + '%' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Pie Chart - Overall Completion
+            if (charts.pieChart) charts.pieChart.destroy();
+            charts.pieChart = new Chart(document.getElementById('pieChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Done', 'Left'],
+                    datasets: [{
+                        data: [totalDone, totalPossible - totalDone],
+                        backgroundColor: ['#10b981', '#f1f5f9'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Best Habits Chart
+            const top5Best = sortedStats.slice(0, 5);
+            if (charts.bestChart) charts.bestChart.destroy();
+            charts.bestChart = new Chart(document.getElementById('bestChart'), {
+                type: 'bar',
+                data: {
+                    labels: top5Best.map(s => s.name.length > 15 ? s.name.substring(0, 15) + '...' : s.name),
+                    datasets: [{
+                        data: top5Best.map(s => s.pct),
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                    }
+                }
+            });
+
+            // Worst Habits Chart
+            const top5Worst = [...sortedStats].reverse().slice(0, 5);
+            if (charts.worstChart) charts.worstChart.destroy();
+            charts.worstChart = new Chart(document.getElementById('worstChart'), {
+                type: 'bar',
+                data: {
+                    labels: top5Worst.map(s => s.name.length > 15 ? s.name.substring(0, 15) + '...' : s.name),
+                    datasets: [{
+                        data: top5Worst.map(s => s.pct),
+                        backgroundColor: '#ef4444',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                    }
+                }
+            });
+        }
+
+        // Check auth on load
+        (async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                await initApp();
+            }
+        })();
+    </script>
+</body>
+</html>
