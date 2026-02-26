@@ -185,6 +185,7 @@
             padding: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.02);
             border: 1px solid #f1f5f9;
+            max-width: 1200px;
         }
 
         .section-title { 
@@ -211,17 +212,77 @@
         .add-btn:hover { background: #4338ca; }
 
         /* Table */
-        .table-wrapper { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .table-wrapper { 
+            width: 100%; 
+            max-width: 100%;
+            overflow-x: auto; 
+            overflow-y: visible;
+        }
+        table { 
+            width: auto;
+            min-width: 100%;
+            border-collapse: collapse; 
+            font-size: 12px;
+            table-layout: auto;
+        }
         th { background: #f8fafc; color: var(--text-sub); font-weight: 600; padding: 6px 2px; border: 1px solid #f1f5f9; }
         td { padding: 4px 1px; border: 1px solid #f1f5f9; text-align: center; }
         
-        .habit-col { text-align: left !important; padding-left: 10px; font-weight: 600; min-width: 180px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .stats-col { font-weight: 700; color: var(--primary); width: 35px; }
-        .day-col { width: 30px; }
+        .habit-col { 
+            text-align: left !important; 
+            padding-left: 10px; 
+            font-weight: 600; 
+            min-width: 180px; 
+            max-width: 200px; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap;
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 10;
+        }
+        th.habit-col {
+            position: sticky;
+            left: 0;
+            background: #f8fafc;
+            z-index: 11;
+        }
+        .stats-col { 
+            font-weight: 700; 
+            color: var(--primary); 
+            width: 35px;
+        }
+        .day-col { width: 32px; min-width: 32px; }
         .actions-col { width: 80px; white-space: nowrap; }
 
         .master-row { background: #eef2ff !important; font-size: 10px; }
+        .master-row td:first-child {
+            position: sticky;
+            left: 0;
+            background: #eef2ff;
+            z-index: 10;
+        }
+
+        /* Row highlighting */
+        tbody tr {
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+        tbody tr:hover {
+            background-color: #f0f9ff !important;
+        }
+        tbody tr.row-selected {
+            background-color: #dbeafe !important;
+            border-left: 4px solid var(--primary);
+        }
+        tbody tr.row-selected td {
+            background-color: #dbeafe !important;
+        }
+        tbody tr.row-selected .habit-col {
+            background-color: #dbeafe !important;
+            font-weight: 700;
+        }
 
         /* Checkboxes */
         input[type="checkbox"] {
@@ -802,6 +863,16 @@
             }
         }
 
+        // ============ ROW SELECTION ============
+        function selectRow(row) {
+            // Remove selection from all rows
+            const allRows = document.querySelectorAll('tbody tr');
+            allRows.forEach(r => r.classList.remove('row-selected'));
+            
+            // Add selection to clicked row
+            row.classList.add('row-selected');
+        }
+
         // ============ RENDERING ============
         function render() {
             document.getElementById('dailyLoading').style.display = 'none';
@@ -843,6 +914,12 @@
                     <td class="stats-col">${done}</td>
                     <td class="stats-col">${pct}%</td>
                 `;
+                
+                // Add click handler for row selection
+                tr.addEventListener('click', (e) => {
+                    // Select row on any click (including checkboxes)
+                    selectRow(tr);
+                });
 
                 for (let d = 1; d <= daysInMonth; d++) {
                     const td = document.createElement('td');
