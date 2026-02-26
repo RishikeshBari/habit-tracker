@@ -120,6 +120,54 @@
         .chart-container { height: 160px; margin-bottom: 20px; }
         .chart-label { font-size: 12px; font-weight: 700; color: var(--text-sub); text-align: center; display: block; margin-bottom: 5px; }
 
+        /* Month Navigation */
+        .month-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .month-nav-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .month-nav-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .month-nav-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        .month-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        .month-nav-btn-current {
+            padding: 8px 16px;
+            background: white;
+            color: var(--primary);
+            border: none;
+            font-weight: 700;
+        }
+        .month-nav-btn-current:hover {
+            background: #f8f9ff;
+        }
+
         /* Main Content */
         .main-content { 
             flex: 1; 
@@ -171,7 +219,7 @@
         .habit-col { text-align: left !important; padding-left: 10px; font-weight: 600; min-width: 180px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .stats-col { font-weight: 700; color: var(--primary); width: 35px; }
         .day-col { width: 30px; }
-        .actions-col { width: 60px; }
+        .actions-col { width: 80px; white-space: nowrap; }
 
         .master-row { background: #eef2ff !important; font-size: 10px; }
 
@@ -183,6 +231,10 @@
         input[type="checkbox"]:checked { background-color: var(--success); border-color: var(--success); }
         input[type="checkbox"]:checked::after {
             content: '✓'; position: absolute; color: white; font-size: 10px; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        input[type="checkbox"]:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
         }
         .master-cb:checked { background-color: var(--primary) !important; border-color: var(--primary) !important; }
 
@@ -278,9 +330,19 @@
             <div class="sidebar-header">
                 <div>
                     <h1>Elite Routine</h1>
-                    <p id="monthYear">January 2026</p>
+                    <p id="monthYearSmall">January 2026</p>
                 </div>
                 <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- NEW: Month Navigation Card -->
+            <div class="month-nav">
+                <div class="month-nav-title" id="monthYearDisplay">January 2026</div>
+                <div class="month-nav-controls">
+                    <button class="month-nav-btn" onclick="goToPreviousMonth()">◀ Prev</button>
+                    <button class="month-nav-btn month-nav-btn-current" onclick="goToCurrentMonth()">Today</button>
+                    <button class="month-nav-btn" onclick="goToNextMonth()">Next ▶</button>
+                </div>
             </div>
 
             <div class="stat-group">
@@ -326,7 +388,7 @@
         <main class="main-content">
             <section class="table-section">
                 <div class="section-title">
-                    <span>Daily Tracker (30 Days Full View)</span>
+                    <span id="tableTitleText">Daily Tracker (30 Days Full View)</span>
                     <button class="add-btn" onclick="openHabitModal()">+ Add Habit</button>
                 </div>
                 <div class="loading" id="dailyLoading">Loading habits...</div>
@@ -376,20 +438,98 @@
         let completions = {};
         let charts = {};
         let editingHabitId = null;
-        const daysInMonth = 30;
+        
+        // NEW: Track selected month/year
+        let selectedYear = new Date().getFullYear();
+        let selectedMonth = new Date().getMonth(); // 0-11
+        let daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+
+        // ============ MONTH NAVIGATION FUNCTIONS ============
+        function updateMonthDisplay() {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const displayText = `${monthNames[selectedMonth]} ${selectedYear}`;
+            document.getElementById('monthYearDisplay').textContent = displayText;
+            document.getElementById('monthYearSmall').textContent = displayText;
+            
+            // Update days in month
+            daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+            document.getElementById('tableTitleText').textContent = `Daily Tracker (${daysInMonth} Days Full View)`;
+        }
+
+        function goToPreviousMonth() {
+            if (selectedMonth === 0) {
+                selectedMonth = 11;
+                selectedYear--;
+            } else {
+                selectedMonth--;
+            }
+            updateMonthDisplay();
+            rebuildTableHeaders();
+            loadAndRender();
+        }
+
+        function goToNextMonth() {
+            if (selectedMonth === 11) {
+                selectedMonth = 0;
+                selectedYear++;
+            } else {
+                selectedMonth++;
+            }
+            updateMonthDisplay();
+            rebuildTableHeaders();
+            loadAndRender();
+        }
+
+        function goToCurrentMonth() {
+            const now = new Date();
+            selectedYear = now.getFullYear();
+            selectedMonth = now.getMonth();
+            updateMonthDisplay();
+            rebuildTableHeaders();
+            loadAndRender();
+        }
+
+        function rebuildTableHeaders() {
+            const header = document.getElementById('dailyHeader');
+            const masterRow = document.getElementById('masterRow');
+            
+            // Clear existing day columns
+            while (header.children.length > 3) {
+                header.removeChild(header.lastChild);
+            }
+            while (masterRow.children.length > 3) {
+                masterRow.removeChild(masterRow.lastChild);
+            }
+            
+            // Add day columns
+            for (let d = 1; d <= daysInMonth; d++) {
+                const th = document.createElement('th');
+                th.textContent = d;
+                th.className = 'day-col';
+                header.appendChild(th);
+
+                const td = document.createElement('td');
+                td.innerHTML = `<input type="checkbox" class="master-cb" onchange="toggleColumn(${d}, this.checked)">`;
+                masterRow.appendChild(td);
+            }
+
+            // Add actions column
+            const actionsHeader = document.createElement('th');
+            actionsHeader.textContent = 'Actions';
+            actionsHeader.className = 'actions-col';
+            header.appendChild(actionsHeader);
+            
+            const actionsCell = document.createElement('td');
+            masterRow.appendChild(actionsCell);
+        }
+
+        async function loadAndRender() {
+            await loadCompletions();
+            render();
+        }
 
         // ============ AUTH FUNCTIONS ============
-                    let isSignUp = false;
-
-            // Helper: Consistent YYYY-MM-DD local date string
-            function getLocalDateString(day) {
-                const now = new Date();
-                const date = new Date(now.getFullYear(), now.getMonth(), day);
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const dayStr = String(date.getDate()).padStart(2, '0');
-                return `${year}-${month}-${dayStr}`;
-            }
+        let isSignUp = false;
 
         document.getElementById('authToggleLink').addEventListener('click', () => {
             isSignUp = !isSignUp;
@@ -452,48 +592,14 @@
         let isInitialized = false;
 
         async function initApp() {
-            if (isInitialized) return; // Prevent multiple initializations
+            if (isInitialized) return;
             isInitialized = true;
 
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('appContainer').classList.add('active');
             
-            // Set current month/year
-            const now = new Date();
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            document.getElementById('monthYear').textContent = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
-
-            // Build day headers ONLY ONCE
-            const header = document.getElementById('dailyHeader');
-            const masterRow = document.getElementById('masterRow');
-            
-            // Clear existing day columns first (in case of re-initialization)
-            while (header.children.length > 3) {
-                header.removeChild(header.lastChild);
-            }
-            while (masterRow.children.length > 3) {
-                masterRow.removeChild(masterRow.lastChild);
-            }
-            
-            for (let d = 1; d <= daysInMonth; d++) {
-                const th = document.createElement('th');
-                th.textContent = d;
-                th.className = 'day-col';
-                header.appendChild(th);
-
-                const td = document.createElement('td');
-                td.innerHTML = `<input type="checkbox" class="master-cb" onchange="toggleColumn(${d}, this.checked)">`;
-                masterRow.appendChild(td);
-            }
-
-            // Add actions column
-            const actionsHeader = document.createElement('th');
-            actionsHeader.textContent = 'Actions';
-            actionsHeader.className = 'actions-col';
-            header.appendChild(actionsHeader);
-            
-            const actionsCell = document.createElement('td');
-            masterRow.appendChild(actionsCell);
+            updateMonthDisplay();
+            rebuildTableHeaders();
 
             await loadHabits();
             await loadCompletions();
@@ -519,10 +625,19 @@
 
         async function loadCompletions() {
             try {
+                // Calculate start and end dates for the selected month
+                const startDate = new Date(selectedYear, selectedMonth, 1);
+                const endDate = new Date(selectedYear, selectedMonth + 1, 0);
+                
+                const startDateStr = startDate.toISOString().split('T')[0];
+                const endDateStr = endDate.toISOString().split('T')[0];
+
                 const { data, error } = await supabaseClient
                     .from('habit_completions')
                     .select('*')
-                    .eq('user_id', currentUser.id);
+                    .eq('user_id', currentUser.id)
+                    .gte('completion_date', startDateStr)
+                    .lte('completion_date', endDateStr);
 
                 if (error) throw error;
                 
@@ -542,10 +657,7 @@
             const isChecked = !completions[key];
             
             try {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = now.getMonth();
-                const completionDate = new Date(year, month, day);
+                const completionDate = new Date(selectedYear, selectedMonth, day);
                 const dateStr = completionDate.toISOString().split('T')[0];
 
                 if (isChecked) {
@@ -579,10 +691,7 @@
         }
 
         async function toggleColumn(day, checked) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const completionDate = new Date(year, month, day);
+            const completionDate = new Date(selectedYear, selectedMonth, day);
             const dateStr = completionDate.toISOString().split('T')[0];
 
             try {
@@ -649,7 +758,7 @@
                 if (editingHabitId) {
                     const { error } = await supabaseClient
                         .from('habits')
-                        .update({ name, updated_at: new Date().toISOString() })
+                        .update({ name })
                         .eq('id', editingHabitId);
                     if (error) throw error;
                 } else {
@@ -659,7 +768,8 @@
                             user_id: currentUser.id,
                             name,
                             frequency: 'daily',
-                            color: '#3B82F6'
+                            color: '#3B82F6',
+                            is_active: true
                         });
                     if (error) throw error;
                 }
@@ -669,12 +779,12 @@
                 closeHabitModal();
             } catch (error) {
                 console.error('Error saving habit:', error);
-                alert('Error saving habit: ' + error.message);
+                alert('Error: ' + error.message);
             }
         }
 
         async function deleteHabit(habitId) {
-            if (!confirm('Delete this habit? This will remove all completion data.')) return;
+            if (!confirm('Are you sure you want to delete this habit?')) return;
 
             try {
                 const { error } = await supabaseClient
@@ -688,10 +798,11 @@
                 render();
             } catch (error) {
                 console.error('Error deleting habit:', error);
+                alert('Error: ' + error.message);
             }
         }
 
-        // ============ RENDER FUNCTIONS ============
+        // ============ RENDERING ============
         function render() {
             document.getElementById('dailyLoading').style.display = 'none';
             document.getElementById('dailyTableWrapper').style.display = 'block';
@@ -699,25 +810,31 @@
             const dailyBody = document.getElementById('dailyBody');
             dailyBody.innerHTML = '';
 
+            if (habits.length === 0) {
+                dailyBody.innerHTML = '<tr><td colspan="100" style="padding: 30px; text-align: center; color: var(--text-sub);">No habits yet. Click "+ Add Habit" to get started!</td></tr>';
+                updateAnalytics();
+                return;
+            }
+
+            // Check if viewing current month
+            const now = new Date();
+            const isCurrentMonth = selectedYear === now.getFullYear() && selectedMonth === now.getMonth();
+
             habits.forEach(habit => {
                 const habitCreatedDate = new Date(habit.created_at);
                 const habitCreatedDay = habitCreatedDate.getDate();
-                const now = new Date();
-                const currentMonth = now.getMonth();
-                const currentYear = now.getFullYear();
                 const habitMonth = habitCreatedDate.getMonth();
                 const habitYear = habitCreatedDate.getFullYear();
                 
-                // Only count days from when habit was created in current month
-                const isCurrentMonth = habitYear === currentYear && habitMonth === currentMonth;
-                const startDay = isCurrentMonth ? habitCreatedDay : 1;
-                const validDays = daysInMonth - startDay + 1;
+                const isHabitCreatedThisMonth = habitYear === selectedYear && habitMonth === selectedMonth;
+                const startDay = isHabitCreatedThisMonth ? habitCreatedDay : 1;
 
                 let done = 0;
                 for (let d = startDay; d <= daysInMonth; d++) {
                     if (completions[`${habit.id}-${d}`]) done++;
                 }
                 
+                const validDays = daysInMonth - startDay + 1;
                 const pct = validDays > 0 ? Math.round((done / validDays) * 100) : 0;
 
                 const tr = document.createElement('tr');
@@ -730,8 +847,8 @@
                 for (let d = 1; d <= daysInMonth; d++) {
                     const td = document.createElement('td');
                     // Disable checkboxes for days before habit was created
-                    if (isCurrentMonth && d < habitCreatedDay) {
-                        td.innerHTML = '<input type="checkbox" disabled style="opacity: 0.2;">';
+                    if (isHabitCreatedThisMonth && d < habitCreatedDay) {
+                        td.innerHTML = '<input type="checkbox" disabled>';
                     } else {
                         const checked = completions[`${habit.id}-${d}`] ? 'checked' : '';
                         td.innerHTML = `<input type="checkbox" ${checked} onchange="toggleCell('${habit.id}', ${d})">`;
@@ -757,14 +874,11 @@
             const stats = habits.map(habit => {
                 const habitCreatedDate = new Date(habit.created_at);
                 const habitCreatedDay = habitCreatedDate.getDate();
-                const now = new Date();
-                const currentMonth = now.getMonth();
-                const currentYear = now.getFullYear();
                 const habitMonth = habitCreatedDate.getMonth();
                 const habitYear = habitCreatedDate.getFullYear();
                 
-                const isCurrentMonth = habitYear === currentYear && habitMonth === currentMonth;
-                const startDay = isCurrentMonth ? habitCreatedDay : 1;
+                const isHabitCreatedThisMonth = habitYear === selectedYear && habitMonth === selectedMonth;
+                const startDay = isHabitCreatedThisMonth ? habitCreatedDay : 1;
                 const validDays = daysInMonth - startDay + 1;
 
                 let count = 0;
@@ -805,8 +919,7 @@
                     const createdDay = new Date(h.created_at).getDate();
                     const createdMonth = new Date(h.created_at).getMonth();
                     const createdYear = new Date(h.created_at).getFullYear();
-                    const now = new Date();
-                    return !(createdYear === now.getFullYear() && createdMonth === now.getMonth() && day < createdDay);
+                    return !(createdYear === selectedYear && createdMonth === selectedMonth && day < createdDay);
                 });
                 const completed = dayHabits.filter(h => completions[`${h.id}-${day}`]).length;
                 return dayHabits.length > 0 ? (completed / dayHabits.length) * 100 : 0;
