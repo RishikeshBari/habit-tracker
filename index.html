@@ -6,6 +6,8 @@
     <title>Elite Routine Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SortableJS for drag-and-drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -209,159 +211,141 @@
             cursor: pointer;
             font-weight: 600;
         }
-        .add-btn:hover { background: #4338ca; }
 
-        /* Table */
-        .table-wrapper { 
-            width: 100%; 
-            max-width: 100%;
-            overflow-x: auto; 
-            overflow-y: visible;
-        }
+        .table-container { overflow-x: auto; }
         table { 
-            width: auto;
-            min-width: 100%;
+            width: 100%; 
             border-collapse: collapse; 
-            font-size: 12px;
-            table-layout: auto;
+            margin-top: 10px; 
+            font-size: 11px; 
         }
-        th { background: #f8fafc; color: var(--text-sub); font-weight: 600; padding: 6px 2px; border: 1px solid #f1f5f9; }
-        td { padding: 4px 1px; border: 1px solid #f1f5f9; text-align: center; }
-        
-        .habit-col { 
-            text-align: left !important; 
-            padding-left: 10px; 
-            font-weight: 600; 
-            min-width: 180px; 
-            max-width: 200px; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            white-space: nowrap;
-            position: sticky;
-            left: 0;
-            background: white;
-            z-index: 10;
-        }
-        th.habit-col {
-            position: sticky;
-            left: 0;
-            background: #f8fafc;
-            z-index: 11;
-        }
-        .stats-col { 
+        th { 
+            background: #f8fafc; 
+            padding: 6px; 
+            text-align: center; 
             font-weight: 700; 
-            color: var(--primary); 
-            width: 35px;
+            border: 1px solid #e2e8f0; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
         }
-        .day-col { width: 32px; min-width: 32px; }
-        .actions-col { width: 80px; white-space: nowrap; }
-
-        .master-row { background: #eef2ff !important; font-size: 10px; }
-        .master-row td:first-child {
+        th.habit-col { text-align: left; width: 200px; }
+        th.stats-col { width: 60px; }
+        th.actions-col { width: 120px; }
+        th.day-col { width: 30px; min-width: 30px; }
+        
+        td { 
+            padding: 4px; 
+            text-align: center; 
+            border: 1px solid #e2e8f0; 
+        }
+        td.habit-col { 
+            text-align: left; 
+            font-weight: 600; 
+            background: #fafafa;
             position: sticky;
             left: 0;
-            background: #eef2ff;
-            z-index: 10;
+            z-index: 5;
+        }
+        td.stats-col { background: #f0fdf4; font-weight: 700; color: var(--success); }
+        td.actions-col { background: #fafafa; }
+
+        /* Drag and Drop Styles */
+        .draggable-row {
+            cursor: move;
+            transition: background-color 0.2s;
+        }
+        .draggable-row:hover {
+            background-color: #f8fafc;
+        }
+        .sortable-ghost {
+            opacity: 0.4;
+            background: #e0e7ff !important;
+        }
+        .sortable-drag {
+            opacity: 1;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .drag-handle {
+            cursor: grab;
+            color: var(--text-sub);
+            margin-right: 8px;
+            display: inline-block;
+            user-select: none;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
         }
 
-        /* Row highlighting */
-        tbody tr {
-            transition: background-color 0.2s ease;
-            cursor: pointer;
-        }
-        tbody tr:hover {
-            background-color: #f0f9ff !important;
-        }
-        tbody tr.row-selected {
-            background-color: #dbeafe !important;
-            border-left: 4px solid var(--primary);
-        }
-        tbody tr.row-selected td {
-            background-color: #dbeafe !important;
-        }
-        tbody tr.row-selected .habit-col {
-            background-color: #dbeafe !important;
-            font-weight: 700;
-        }
-
-        /* Checkboxes */
-        input[type="checkbox"] {
-            appearance: none; width: 15px; height: 15px; border: 1.5px solid #cbd5e1; border-radius: 3px;
-            cursor: pointer; transition: 0.2s; position: relative; vertical-align: middle;
-        }
-        input[type="checkbox"]:checked { background-color: var(--success); border-color: var(--success); }
-        input[type="checkbox"]:checked::after {
-            content: '✓'; position: absolute; color: white; font-size: 10px; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        input[type="checkbox"] { 
+            width: 18px; 
+            height: 18px; 
+            cursor: pointer; 
+            accent-color: var(--success); 
         }
         input[type="checkbox"]:disabled {
             opacity: 0.3;
             cursor: not-allowed;
         }
-        .master-cb:checked { background-color: var(--primary) !important; border-color: var(--primary) !important; }
 
-        /* Action Buttons */
+        tr.selected { background: #e0e7ff !important; }
+        
         .action-btn {
-            padding: 2px 6px;
+            padding: 4px 8px;
             border: none;
             border-radius: 4px;
             font-size: 10px;
             cursor: pointer;
+            font-weight: 600;
             margin: 0 2px;
         }
         .edit-btn { background: #dbeafe; color: #1e40af; }
-        .delete-btn { background: #fee2e2; color: #991b1b; }
+        .delete-btn { background: #fee2e2; color: #b91c1c; }
 
         /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            z-index: 1000; 
+            justify-content: center; 
+            align-items: center; 
         }
         .modal.active { display: flex; }
-        .modal-content {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            max-width: 400px;
-            width: 90%;
+        .modal-content { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            max-width: 400px; 
+            width: 90%; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .modal-content h2 { margin-bottom: 15px; font-size: 18px; }
-        .modal-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
+        .modal-content h2 { margin-bottom: 20px; font-size: 20px; }
+        .modal-input { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            font-size: 14px; 
         }
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-        .modal-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-btn { 
+            flex: 1; 
+            padding: 10px; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            font-size: 13px; 
         }
         .modal-btn-primary { background: var(--primary); color: white; }
         .modal-btn-secondary { background: #e2e8f0; color: var(--text-main); }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: var(--text-sub);
-        }
     </style>
 </head>
 <body>
@@ -369,116 +353,114 @@
     <div class="auth-screen" id="authScreen">
         <div class="auth-card">
             <h1>Elite Routine Tracker</h1>
-            <p id="authSubtitle">Sign in to sync across all your devices</p>
-            <div id="authError" class="auth-error" style="display: none;"></div>
-            
-            <form id="authForm">
-                <input type="email" class="auth-input" id="authEmail" placeholder="Email" required>
-                <input type="password" class="auth-input" id="authPassword" placeholder="Password" required>
-                <button type="submit" class="auth-btn" id="authSubmitBtn">Sign In</button>
-            </form>
-            
-            <div class="auth-toggle">
-                <span id="authToggleText">Don't have an account?</span>
-                <a id="authToggleLink">Sign Up</a>
+            <p>Track your daily habits and build consistency</p>
+            <div id="authError"></div>
+            <div id="loginForm">
+                <input type="email" id="loginEmail" class="auth-input" placeholder="Email">
+                <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
+                <button class="auth-btn" onclick="login()">Login</button>
+                <p class="auth-toggle">Don't have an account? <a onclick="switchToSignup()">Sign up</a></p>
+            </div>
+            <div id="signupForm" style="display: none;">
+                <input type="email" id="signupEmail" class="auth-input" placeholder="Email">
+                <input type="password" id="signupPassword" class="auth-input" placeholder="Password">
+                <button class="auth-btn" onclick="signup()">Sign Up</button>
+                <p class="auth-toggle">Already have an account? <a onclick="switchToLogin()">Login</a></p>
             </div>
         </div>
     </div>
 
     <!-- Main App -->
     <div class="app-container" id="appContainer">
-        <aside class="sidebar">
+        <!-- Sidebar -->
+        <div class="sidebar">
             <div class="sidebar-header">
                 <div>
-                    <h1>Elite Routine</h1>
-                    <p id="monthYearSmall">January 2026</p>
+                    <h1>Dashboard</h1>
+                    <p id="userName">Loading...</p>
                 </div>
                 <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
 
-            <!-- NEW: Month Navigation Card -->
+            <!-- Month Navigation -->
             <div class="month-nav">
-                <div class="month-nav-title" id="monthYearDisplay">January 2026</div>
+                <div class="month-nav-title" id="currentMonthDisplay"></div>
                 <div class="month-nav-controls">
-                    <button class="month-nav-btn" onclick="goToPreviousMonth()">◀ Prev</button>
+                    <button class="month-nav-btn" onclick="changeMonth(-1)">← Prev</button>
                     <button class="month-nav-btn month-nav-btn-current" onclick="goToCurrentMonth()">Today</button>
-                    <button class="month-nav-btn" onclick="goToNextMonth()">Next ▶</button>
+                    <button class="month-nav-btn" onclick="changeMonth(1)">Next →</button>
                 </div>
             </div>
 
-            <div class="stat-group">
-                <div class="stat-card" style="border-left: 4px solid var(--success);">
-                    <h3>Monthly Score</h3>
-                    <div class="val" id="overallVal">0%</div>
-                </div>
-
-                <div class="stat-card" style="border-left: 4px solid var(--primary);">
-                    <h3>Best Habit</h3>
-                    <div class="val" id="bestName" style="font-size: 13px;">-</div>
-                    <div class="sub-text" id="bestScore"></div>
-                </div>
-
-                <div class="stat-card" style="border-left: 4px solid var(--danger);">
-                    <h3>Needs Focus</h3>
-                    <div class="val" id="worstName" style="font-size: 13px; color: var(--danger);">-</div>
-                    <div class="sub-text" id="worstScore"></div>
-                </div>
+            <div class="stat-card">
+                <h3>Overall Completion</h3>
+                <span class="val" id="overallVal">0%</span>
             </div>
 
-            <div class="chart-section">
-                <span class="chart-label">Performance Trend</span>
-                <div class="chart-container"><canvas id="lineChart"></canvas></div>
+            <div class="stat-card">
+                <h3>Best Habit</h3>
+                <span class="val" id="bestName">No habits yet</span>
+                <small id="bestScore" style="display: block; margin-top: 4px; color: var(--text-sub); font-size: 10px;"></small>
             </div>
 
-            <div class="chart-section">
-                <span class="chart-label">Completion Ratio</span>
-                <div class="chart-container"><canvas id="pieChart"></canvas></div>
+            <div class="stat-card">
+                <h3>Needs Work</h3>
+                <span class="val" id="worstName">Add habits to start</span>
+                <small id="worstScore" style="display: block; margin-top: 4px; color: var(--text-sub); font-size: 10px;"></small>
             </div>
 
-            <div class="chart-section">
-                <span class="chart-label">Top 5 Best Habits</span>
-                <div class="chart-container"><canvas id="bestChart"></canvas></div>
+            <div class="chart-container">
+                <span class="chart-label">Daily Performance</span>
+                <canvas id="lineChart"></canvas>
             </div>
 
-            <div class="chart-section">
-                <span class="chart-label">Top 5 Habits to Focus</span>
-                <div class="chart-container"><canvas id="worstChart"></canvas></div>
+            <div class="chart-container">
+                <span class="chart-label">Overall Completion</span>
+                <canvas id="pieChart"></canvas>
             </div>
-        </aside>
 
-        <main class="main-content">
-            <section class="table-section">
+            <div class="chart-container">
+                <span class="chart-label">Top 5 Habits</span>
+                <canvas id="bestChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <span class="chart-label">Bottom 5 Habits</span>
+                <canvas id="worstChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="table-section">
                 <div class="section-title">
-                    <span id="tableTitleText">Daily Tracker (30 Days Full View)</span>
+                    <span>Daily Habits</span>
                     <button class="add-btn" onclick="openHabitModal()">+ Add Habit</button>
                 </div>
-                <div class="loading" id="dailyLoading">Loading habits...</div>
-                <div class="table-wrapper" id="dailyTableWrapper" style="display: none;">
+                <div class="table-container">
                     <table>
                         <thead>
-                            <tr id="dailyHeader">
-                                <th class="habit-col">Activity</th>
+                            <tr>
+                                <th class="habit-col">Habit</th>
                                 <th class="stats-col">Done</th>
                                 <th class="stats-col">%</th>
-                            </tr>
-                            <tr id="masterRow" class="master-row">
-                                <td class="habit-col">SET ALL FOR DAY →</td>
-                                <td class="stats-col"></td><td class="stats-col"></td>
+                                <th class="day-col" id="dayHeaders"></th>
+                                <th class="actions-col">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="dailyBody"></tbody>
                     </table>
                 </div>
-            </section>
-        </main>
+            </div>
+        </div>
     </div>
 
-    <!-- Add/Edit Habit Modal -->
+    <!-- Habit Modal -->
     <div class="modal" id="habitModal">
         <div class="modal-content">
-            <h2 id="modalTitle">Add New Habit</h2>
-            <input type="text" class="modal-input" id="habitName" placeholder="Habit name (e.g., Meditate 5-10m)">
-            <div class="modal-buttons">
+            <h2 id="modalTitle">Add Habit</h2>
+            <input type="text" id="habitName" class="modal-input" placeholder="Habit name">
+            <div class="modal-actions">
                 <button class="modal-btn modal-btn-secondary" onclick="closeHabitModal()">Cancel</button>
                 <button class="modal-btn modal-btn-primary" onclick="saveHabit()">Save</button>
             </div>
@@ -486,324 +468,295 @@
     </div>
 
     <script>
-        // ============ CONFIGURATION ============
+        // CRITICAL: Update these with your Supabase credentials
         const SUPABASE_URL = 'https://ngxzaywoelxukmrvbhux.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHpheXdvZWx4dWttcnZiaHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NjYwNzgsImV4cCI6MjA4NDA0MjA3OH0.3FRygU5-ftjM7ZKnZTqdB4d8q4_D8NZCG8nGWlKrQYw';
 
-        // Initialize Supabase
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Comprehensive error handling and library check
+        (function() {
+            console.log('🔍 Checking dependencies...');
+            
+            // Check if libraries loaded
+            if (typeof Chart === 'undefined') {
+                console.error('❌ Chart.js failed to load');
+                alert('Chart.js library failed to load. Please check your internet connection.');
+                return;
+            }
+            console.log('✅ Chart.js loaded');
+            
+            if (typeof supabase === 'undefined') {
+                console.error('❌ Supabase client failed to load');
+                alert('Supabase library failed to load. Please check your internet connection.');
+                return;
+            }
+            console.log('✅ Supabase client loaded');
+            
+            if (typeof Sortable === 'undefined') {
+                console.warn('⚠️ SortableJS failed to load - drag-and-drop will be disabled');
+                // Don't block the app, just disable drag-and-drop
+            } else {
+                console.log('✅ SortableJS loaded');
+            }
 
-        // ============ GLOBAL STATE ============
+            // Check Supabase credentials
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+                console.error('❌ Supabase credentials not configured');
+                alert('Please update SUPABASE_URL and SUPABASE_KEY in the code (around line 345)');
+                return;
+            }
+            console.log('✅ Supabase credentials configured');
+        })();
+
+        let supabaseClient;
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('✅ Supabase client initialized');
+        } catch (error) {
+            console.error('❌ Failed to initialize Supabase client:', error);
+            alert('Failed to initialize Supabase. Check console for details.');
+        }
+
         let currentUser = null;
         let habits = [];
         let completions = {};
-        let charts = {};
+        let selectedRow = null;
         let editingHabitId = null;
-        
-        // NEW: Track selected month/year
-        let selectedYear = new Date().getFullYear();
-        let selectedMonth = new Date().getMonth(); // 0-11
+        let sortableInstance = null;
+
+        // Date state
+        let currentDate = new Date();
+        let selectedMonth = currentDate.getMonth();
+        let selectedYear = currentDate.getFullYear();
         let daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-        // ============ MONTH NAVIGATION FUNCTIONS ============
+        const charts = {
+            lineChart: null,
+            pieChart: null,
+            bestChart: null,
+            worstChart: null
+        };
+
+        function switchToSignup() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'block';
+            document.getElementById('authError').innerHTML = '';
+        }
+
+        function switchToLogin() {
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('authError').innerHTML = '';
+        }
+
+        function showAuthError(msg) {
+            document.getElementById('authError').innerHTML = `<div class="auth-error">${msg}</div>`;
+        }
+
+        async function login() {
+            try {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                if (!email || !password) {
+                    showAuthError('Please enter email and password');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) {
+                    console.error('Login error:', error);
+                    showAuthError(error.message);
+                    return;
+                }
+
+                currentUser = data.user;
+                await initApp();
+            } catch (error) {
+                console.error('Login exception:', error);
+                showAuthError('Login failed: ' + error.message);
+            }
+        }
+
+        async function signup() {
+            try {
+                const email = document.getElementById('signupEmail').value;
+                const password = document.getElementById('signupPassword').value;
+
+                if (!email || !password) {
+                    showAuthError('Please enter email and password');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) {
+                    console.error('Signup error:', error);
+                    showAuthError(error.message);
+                    return;
+                }
+
+                showAuthError('Check your email to confirm signup!');
+            } catch (error) {
+                console.error('Signup exception:', error);
+                showAuthError('Signup failed: ' + error.message);
+            }
+        }
+
+        async function logout() {
+            try {
+                await supabaseClient.auth.signOut();
+                location.reload();
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Logout failed: ' + error.message);
+            }
+        }
+
+        async function initApp() {
+            try {
+                console.log('🚀 Initializing app...');
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('appContainer').classList.add('active');
+                document.getElementById('userName').textContent = currentUser.email;
+
+                updateMonthDisplay();
+                await loadHabits();
+                renderTable();
+                console.log('✅ App initialized successfully');
+            } catch (error) {
+                console.error('❌ App initialization error:', error);
+                alert('Failed to initialize app: ' + error.message);
+            }
+        }
+
         function updateMonthDisplay() {
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            const displayText = `${monthNames[selectedMonth]} ${selectedYear}`;
-            document.getElementById('monthYearDisplay').textContent = displayText;
-            document.getElementById('monthYearSmall').textContent = displayText;
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('currentMonthDisplay').textContent = 
+                `${monthNames[selectedMonth]} ${selectedYear}`;
+        }
+
+        function changeMonth(delta) {
+            selectedMonth += delta;
+            if (selectedMonth < 0) { selectedMonth = 11; selectedYear--; }
+            if (selectedMonth > 11) { selectedMonth = 0; selectedYear++; }
             
-            // Update days in month
             daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-            document.getElementById('tableTitleText').textContent = `Daily Tracker (${daysInMonth} Days Full View)`;
-        }
-
-        function goToPreviousMonth() {
-            if (selectedMonth === 0) {
-                selectedMonth = 11;
-                selectedYear--;
-            } else {
-                selectedMonth--;
-            }
             updateMonthDisplay();
-            rebuildTableHeaders();
-            loadAndRender();
-        }
-
-        function goToNextMonth() {
-            if (selectedMonth === 11) {
-                selectedMonth = 0;
-                selectedYear++;
-            } else {
-                selectedMonth++;
-            }
-            updateMonthDisplay();
-            rebuildTableHeaders();
-            loadAndRender();
+            loadHabits();
         }
 
         function goToCurrentMonth() {
-            const now = new Date();
-            selectedYear = now.getFullYear();
-            selectedMonth = now.getMonth();
+            currentDate = new Date();
+            selectedMonth = currentDate.getMonth();
+            selectedYear = currentDate.getFullYear();
+            daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
             updateMonthDisplay();
-            rebuildTableHeaders();
-            loadAndRender();
+            loadHabits();
         }
 
-        function rebuildTableHeaders() {
-            const header = document.getElementById('dailyHeader');
-            const masterRow = document.getElementById('masterRow');
-            
-            // Clear existing day columns
-            while (header.children.length > 3) {
-                header.removeChild(header.lastChild);
-            }
-            while (masterRow.children.length > 3) {
-                masterRow.removeChild(masterRow.lastChild);
-            }
-            
-            // Add day columns
-            for (let d = 1; d <= daysInMonth; d++) {
-                const th = document.createElement('th');
-                th.textContent = d;
-                th.className = 'day-col';
-                header.appendChild(th);
-
-                const td = document.createElement('td');
-                td.innerHTML = `<input type="checkbox" class="master-cb" onchange="toggleColumn(${d}, this.checked)">`;
-                masterRow.appendChild(td);
-            }
-
-            // Add actions column
-            const actionsHeader = document.createElement('th');
-            actionsHeader.textContent = 'Actions';
-            actionsHeader.className = 'actions-col';
-            header.appendChild(actionsHeader);
-            
-            const actionsCell = document.createElement('td');
-            masterRow.appendChild(actionsCell);
-        }
-
-        async function loadAndRender() {
-            await loadCompletions();
-            render();
-        }
-
-        // ============ AUTH FUNCTIONS ============
-        let isSignUp = false;
-
-        document.getElementById('authToggleLink').addEventListener('click', () => {
-            isSignUp = !isSignUp;
-            if (isSignUp) {
-                document.getElementById('authSubtitle').textContent = 'Create your account';
-                document.getElementById('authSubmitBtn').textContent = 'Sign Up';
-                document.getElementById('authToggleText').textContent = 'Already have an account?';
-                document.getElementById('authToggleLink').textContent = 'Sign In';
-            } else {
-                document.getElementById('authSubtitle').textContent = 'Sign in to sync across all your devices';
-                document.getElementById('authSubmitBtn').textContent = 'Sign In';
-                document.getElementById('authToggleText').textContent = "Don't have an account?";
-                document.getElementById('authToggleLink').textContent = 'Sign Up';
-            }
-        });
-
-        document.getElementById('authForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-            const errorDiv = document.getElementById('authError');
-
-            try {
-                let result;
-                if (isSignUp) {
-                    result = await supabaseClient.auth.signUp({ email, password });
-                    if (result.error) throw result.error;
-                    errorDiv.style.display = 'block';
-                    errorDiv.style.background = '#d1fae5';
-                    errorDiv.style.color = '#065f46';
-                    errorDiv.textContent = 'Account created! Check your email to verify.';
-                } else {
-                    result = await supabaseClient.auth.signInWithPassword({ email, password });
-                    if (result.error) throw result.error;
-                    await initApp();
-                }
-            } catch (error) {
-                errorDiv.style.display = 'block';
-                errorDiv.textContent = error.message;
-            }
-        });
-
-        async function logout() {
-            await supabaseClient.auth.signOut();
-            location.reload();
-        }
-
-        // Check if user is logged in
-        let authListenerSet = false;
-        
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (session && !authListenerSet) {
-                authListenerSet = true;
-                currentUser = session.user;
-                initApp();
-            }
-        });
-
-        // ============ APP INITIALIZATION ============
-        let isInitialized = false;
-
-        async function initApp() {
-            if (isInitialized) return;
-            isInitialized = true;
-
-            document.getElementById('authScreen').style.display = 'none';
-            document.getElementById('appContainer').classList.add('active');
-            
-            updateMonthDisplay();
-            rebuildTableHeaders();
-
-            await loadHabits();
-            await loadCompletions();
-            render();
-        }
-
-        // ============ DATABASE FUNCTIONS ============
         async function loadHabits() {
             try {
-                const { data, error } = await supabaseClient
+                console.log('📥 Loading habits...');
+                const startOfMonth = new Date(selectedYear, selectedMonth, 1).toISOString();
+                const endOfMonth = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString();
+
+                // Fetch habits ordered by position
+                const { data: habitData, error: habitError } = await supabaseClient
                     .from('habits')
                     .select('*')
                     .eq('user_id', currentUser.id)
-                    .eq('is_active', true)
-                    .order('created_at', { ascending: true });
+                    .order('position', { ascending: true, nullsFirst: false });
 
-                if (error) throw error;
-                habits = data || [];
-            } catch (error) {
-                console.error('Error loading habits:', error);
-            }
-        }
+                if (habitError) {
+                    console.error('Habit loading error:', habitError);
+                    throw habitError;
+                }
 
-        async function loadCompletions() {
-            try {
-                // Calculate start and end dates for the selected month
-                const startDate = new Date(selectedYear, selectedMonth, 1);
-                const endDate = new Date(selectedYear, selectedMonth + 1, 0);
-                
-                const startDateStr = startDate.toISOString().split('T')[0];
-                const endDateStr = endDate.toISOString().split('T')[0];
+                habits = habitData || [];
+                console.log(`✅ Loaded ${habits.length} habits`);
 
-                const { data, error } = await supabaseClient
-                    .from('habit_completions')
+                // Fetch completions
+                const { data: compData, error: compError } = await supabaseClient
+                    .from('completions')
                     .select('*')
                     .eq('user_id', currentUser.id)
-                    .gte('completion_date', startDateStr)
-                    .lte('completion_date', endDateStr);
+                    .gte('date', startOfMonth)
+                    .lte('date', endOfMonth);
 
-                if (error) throw error;
-                
+                if (compError) {
+                    console.error('Completions loading error:', compError);
+                    throw compError;
+                }
+
                 completions = {};
-                (data || []).forEach(comp => {
-                    const date = new Date(comp.completion_date);
-                    const day = date.getDate();
-                    completions[`${comp.habit_id}-${day}`] = true;
+                (compData || []).forEach(c => {
+                    const d = new Date(c.date);
+                    const day = d.getDate();
+                    completions[`${c.habit_id}-${day}`] = true;
                 });
+                console.log(`✅ Loaded ${Object.keys(completions).length} completions`);
+
+                renderTable();
             } catch (error) {
-                console.error('Error loading completions:', error);
+                console.error('❌ Load habits error:', error);
+                alert('Failed to load habits: ' + error.message);
             }
         }
 
         async function toggleCell(habitId, day) {
-            const key = `${habitId}-${day}`;
-            const isChecked = !completions[key];
-            
             try {
-                const completionDate = new Date(selectedYear, selectedMonth, day);
-                const dateStr = completionDate.toISOString().split('T')[0];
+                const key = `${habitId}-${day}`;
+                const date = new Date(selectedYear, selectedMonth, day);
+                const dateStr = date.toISOString().split('T')[0];
 
-                if (isChecked) {
+                if (completions[key]) {
                     const { error } = await supabaseClient
-                        .from('habit_completions')
-                        .upsert({
-                            habit_id: habitId,
-                            user_id: currentUser.id,
-                            completion_date: dateStr
-                        }, {
-                            onConflict: 'habit_id,completion_date'
-                        });
-                    if (error && error.code !== '23505') throw error;
-                    completions[key] = true;
-                } else {
-                    const { error } = await supabaseClient
-                        .from('habit_completions')
+                        .from('completions')
                         .delete()
                         .eq('habit_id', habitId)
-                        .eq('user_id', currentUser.id)
-                        .eq('completion_date', dateStr);
+                        .eq('date', dateStr)
+                        .eq('user_id', currentUser.id);
+
                     if (error) throw error;
                     delete completions[key];
-                }
-                
-                render();
-            } catch (error) {
-                console.error('Error toggling completion:', error);
-                alert('Error: ' + error.message);
-            }
-        }
-
-        async function toggleColumn(day, checked) {
-            const completionDate = new Date(selectedYear, selectedMonth, day);
-            const dateStr = completionDate.toISOString().split('T')[0];
-
-            try {
-                if (checked) {
-                    const inserts = habits.map(h => ({
-                        habit_id: h.id,
-                        user_id: currentUser.id,
-                        completion_date: dateStr
-                    }));
-                    
-                    const { error } = await supabaseClient
-                        .from('habit_completions')
-                        .upsert(inserts, { onConflict: 'habit_id,completion_date' });
-                    
-                    if (error) throw error;
-                    habits.forEach(h => completions[`${h.id}-${day}`] = true);
                 } else {
-                    const habitIds = habits.map(h => h.id);
                     const { error } = await supabaseClient
-                        .from('habit_completions')
-                        .delete()
-                        .in('habit_id', habitIds)
-                        .eq('completion_date', dateStr);
-                    
+                        .from('completions')
+                        .insert({ habit_id: habitId, user_id: currentUser.id, date: dateStr });
+
                     if (error) throw error;
-                    habits.forEach(h => delete completions[`${h.id}-${day}`]);
+                    completions[key] = true;
                 }
-                
-                render();
+
+                renderTable();
             } catch (error) {
-                console.error('Error toggling column:', error);
+                console.error('Toggle cell error:', error);
+                alert('Failed to update completion: ' + error.message);
             }
         }
 
-        // ============ HABIT MODAL ============
+        function selectRow(row) {
+            if (selectedRow) selectedRow.classList.remove('selected');
+            selectedRow = row;
+            row.classList.add('selected');
+        }
+
         function openHabitModal(habitId = null) {
             editingHabitId = habitId;
             const modal = document.getElementById('habitModal');
-            const title = document.getElementById('modalTitle');
             const input = document.getElementById('habitName');
 
             if (habitId) {
                 const habit = habits.find(h => h.id === habitId);
-                title.textContent = 'Edit Habit';
+                document.getElementById('modalTitle').textContent = 'Edit Habit';
                 input.value = habit.name;
             } else {
-                title.textContent = 'Add New Habit';
+                document.getElementById('modalTitle').textContent = 'Add Habit';
                 input.value = '';
             }
 
             modal.classList.add('active');
+            input.focus();
         }
 
         function closeHabitModal() {
@@ -812,292 +765,400 @@
         }
 
         async function saveHabit() {
-            const name = document.getElementById('habitName').value.trim();
-            if (!name) return;
-
             try {
+                const name = document.getElementById('habitName').value.trim();
+                if (!name) {
+                    alert('Please enter a habit name');
+                    return;
+                }
+
                 if (editingHabitId) {
                     const { error } = await supabaseClient
                         .from('habits')
                         .update({ name })
-                        .eq('id', editingHabitId);
+                        .eq('id', editingHabitId)
+                        .eq('user_id', currentUser.id);
+
                     if (error) throw error;
                 } else {
+                    // When creating, set position to the end
+                    const maxPosition = habits.length > 0 
+                        ? Math.max(...habits.map(h => h.position !== null ? h.position : 0)) 
+                        : -1;
+
                     const { error } = await supabaseClient
                         .from('habits')
-                        .insert({
+                        .insert({ 
+                            name, 
                             user_id: currentUser.id,
-                            name,
-                            frequency: 'daily',
-                            color: '#3B82F6',
-                            is_active: true
+                            position: maxPosition + 1
                         });
+
                     if (error) throw error;
                 }
 
-                await loadHabits();
-                render();
                 closeHabitModal();
+                await loadHabits();
             } catch (error) {
-                console.error('Error saving habit:', error);
-                alert('Error: ' + error.message);
+                console.error('Save habit error:', error);
+                alert('Failed to save habit: ' + error.message);
             }
         }
 
         async function deleteHabit(habitId) {
-            if (!confirm('Are you sure you want to delete this habit?')) return;
-
             try {
+                if (!confirm('Delete this habit?')) return;
+
                 const { error } = await supabaseClient
                     .from('habits')
-                    .update({ is_active: false })
-                    .eq('id', habitId);
+                    .delete()
+                    .eq('id', habitId)
+                    .eq('user_id', currentUser.id);
 
                 if (error) throw error;
 
                 await loadHabits();
-                render();
             } catch (error) {
-                console.error('Error deleting habit:', error);
-                alert('Error: ' + error.message);
+                console.error('Delete habit error:', error);
+                alert('Failed to delete habit: ' + error.message);
             }
         }
 
-        // ============ ROW SELECTION ============
-        function selectRow(row) {
-            // Remove selection from all rows
-            const allRows = document.querySelectorAll('tbody tr');
-            allRows.forEach(r => r.classList.remove('row-selected'));
-            
-            // Add selection to clicked row
-            row.classList.add('row-selected');
-        }
-
-        // ============ RENDERING ============
-        function render() {
-            document.getElementById('dailyLoading').style.display = 'none';
-            document.getElementById('dailyTableWrapper').style.display = 'block';
-
-            const dailyBody = document.getElementById('dailyBody');
-            dailyBody.innerHTML = '';
-
-            if (habits.length === 0) {
-                dailyBody.innerHTML = '<tr><td colspan="100" style="padding: 30px; text-align: center; color: var(--text-sub);">No habits yet. Click "+ Add Habit" to get started!</td></tr>';
-                updateAnalytics();
-                return;
-            }
-
-            // Check if viewing current month
-            const now = new Date();
-            const isCurrentMonth = selectedYear === now.getFullYear() && selectedMonth === now.getMonth();
-
-            habits.forEach(habit => {
-                const habitCreatedDate = new Date(habit.created_at);
-                const habitCreatedDay = habitCreatedDate.getDate();
-                const habitMonth = habitCreatedDate.getMonth();
-                const habitYear = habitCreatedDate.getFullYear();
+        async function updateHabitPositions(habitIds) {
+            try {
+                console.log('🔄 Updating positions...', habitIds);
                 
-                const isHabitCreatedThisMonth = habitYear === selectedYear && habitMonth === selectedMonth;
-                const startDay = isHabitCreatedThisMonth ? habitCreatedDay : 1;
+                // Batch update: update each habit with its new position
+                const updates = habitIds.map((habitId, index) => ({
+                    id: habitId,
+                    user_id: currentUser.id,
+                    position: index
+                }));
 
-                let done = 0;
-                for (let d = startDay; d <= daysInMonth; d++) {
-                    if (completions[`${habit.id}-${d}`]) done++;
+                const { error } = await supabaseClient
+                    .from('habits')
+                    .upsert(updates, { 
+                        onConflict: 'id',
+                        ignoreDuplicates: false 
+                    });
+
+                if (error) {
+                    console.error('Position update error:', error);
+                    throw error;
                 }
                 
-                const validDays = daysInMonth - startDay + 1;
-                const pct = validDays > 0 ? Math.round((done / validDays) * 100) : 0;
+                console.log('✅ Positions updated successfully');
+            } catch (error) {
+                console.error('❌ Update positions error:', error);
+                alert('Failed to update order: ' + error.message);
+                // Reload habits to restore correct order
+                await loadHabits();
+            }
+        }
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="habit-col">${habit.name}</td>
-                    <td class="stats-col">${done}</td>
-                    <td class="stats-col">${pct}%</td>
-                `;
+        function renderTable() {
+            try {
+                console.log('🎨 Rendering table...');
+                const dayHeaders = document.getElementById('dayHeaders');
+                dayHeaders.innerHTML = '';
                 
-                // Add click handler for row selection
-                tr.addEventListener('click', (e) => {
-                    // Select row on any click (including checkboxes)
-                    selectRow(tr);
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const th = document.createElement('th');
+                    th.className = 'day-col';
+                    th.textContent = d;
+                    dayHeaders.parentNode.insertBefore(th, dayHeaders.nextSibling);
+                }
+
+                const dailyBody = document.getElementById('dailyBody');
+                dailyBody.innerHTML = '';
+
+                habits.forEach(habit => {
+                    const habitCreatedDate = new Date(habit.created_at);
+                    const habitCreatedDay = habitCreatedDate.getDate();
+                    const habitMonth = habitCreatedDate.getMonth();
+                    const habitYear = habitCreatedDate.getFullYear();
+                    
+                    const isHabitCreatedThisMonth = habitYear === selectedYear && habitMonth === selectedMonth;
+                    const startDay = isHabitCreatedThisMonth ? habitCreatedDay : 1;
+
+                    let done = 0;
+                    for (let d = startDay; d <= daysInMonth; d++) {
+                        if (completions[`${habit.id}-${d}`]) done++;
+                    }
+                    
+                    const validDays = daysInMonth - startDay + 1;
+                    const pct = validDays > 0 ? Math.round((done / validDays) * 100) : 0;
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'draggable-row';
+                    tr.dataset.habitId = habit.id;
+                    
+                    // Only show drag handle if SortableJS is available
+                    const dragHandle = typeof Sortable !== 'undefined' 
+                        ? '<span class="drag-handle">☰</span>' 
+                        : '';
+                    
+                    tr.innerHTML = `
+                        <td class="habit-col">
+                            ${dragHandle}${habit.name}
+                        </td>
+                        <td class="stats-col">${done}</td>
+                        <td class="stats-col">${pct}%</td>
+                    `;
+                    
+                    tr.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('drag-handle')) {
+                            selectRow(tr);
+                        }
+                    });
+
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const td = document.createElement('td');
+                        if (isHabitCreatedThisMonth && d < habitCreatedDay) {
+                            td.innerHTML = '<input type="checkbox" disabled>';
+                        } else {
+                            const checked = completions[`${habit.id}-${d}`] ? 'checked' : '';
+                            td.innerHTML = `<input type="checkbox" ${checked} onchange="toggleCell('${habit.id}', ${d})">`;
+                        }
+                        tr.appendChild(td);
+                    }
+
+                    const actionsTd = document.createElement('td');
+                    actionsTd.className = 'actions-col';
+                    actionsTd.innerHTML = `
+                        <button class="action-btn edit-btn" onclick="openHabitModal('${habit.id}')">Edit</button>
+                        <button class="action-btn delete-btn" onclick="deleteHabit('${habit.id}')">Del</button>
+                    `;
+                    tr.appendChild(actionsTd);
+
+                    dailyBody.appendChild(tr);
                 });
 
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const td = document.createElement('td');
-                    // Disable checkboxes for days before habit was created
-                    if (isHabitCreatedThisMonth && d < habitCreatedDay) {
-                        td.innerHTML = '<input type="checkbox" disabled>';
-                    } else {
-                        const checked = completions[`${habit.id}-${d}`] ? 'checked' : '';
-                        td.innerHTML = `<input type="checkbox" ${checked} onchange="toggleCell('${habit.id}', ${d})">`;
-                    }
-                    tr.appendChild(td);
+                // Initialize drag-and-drop if SortableJS is available
+                if (typeof Sortable !== 'undefined') {
+                    initializeDragAndDrop();
                 }
 
-                const actionsTd = document.createElement('td');
-                actionsTd.className = 'actions-col';
-                actionsTd.innerHTML = `
-                    <button class="action-btn edit-btn" onclick="openHabitModal('${habit.id}')">Edit</button>
-                    <button class="action-btn delete-btn" onclick="deleteHabit('${habit.id}')">Del</button>
-                `;
-                tr.appendChild(actionsTd);
+                updateAnalytics();
+                console.log('✅ Table rendered successfully');
+            } catch (error) {
+                console.error('❌ Render table error:', error);
+                alert('Failed to render table: ' + error.message);
+            }
+        }
 
-                dailyBody.appendChild(tr);
-            });
+        function initializeDragAndDrop() {
+            try {
+                const dailyBody = document.getElementById('dailyBody');
+                
+                // Destroy existing instance if it exists
+                if (sortableInstance) {
+                    sortableInstance.destroy();
+                }
 
-            updateAnalytics();
+                // Create new Sortable instance
+                sortableInstance = new Sortable(dailyBody, {
+                    animation: 150,
+                    handle: '.drag-handle',
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'sortable-drag',
+                    onEnd: async function(evt) {
+                        try {
+                            // Get the new order of habit IDs
+                            const rows = dailyBody.querySelectorAll('.draggable-row');
+                            const newOrder = Array.from(rows).map(row => row.dataset.habitId);
+                            
+                            // Update local habits array to reflect new order
+                            const reorderedHabits = newOrder.map(id => 
+                                habits.find(h => h.id === id)
+                            );
+                            habits = reorderedHabits;
+                            
+                            // Update positions in Supabase
+                            await updateHabitPositions(newOrder);
+                        } catch (error) {
+                            console.error('Drag end error:', error);
+                        }
+                    }
+                });
+                console.log('✅ Drag-and-drop initialized');
+            } catch (error) {
+                console.error('⚠️ Drag-and-drop initialization failed:', error);
+                // Don't block the app if drag-and-drop fails
+            }
         }
 
         function updateAnalytics() {
-            const stats = habits.map(habit => {
-                const habitCreatedDate = new Date(habit.created_at);
-                const habitCreatedDay = habitCreatedDate.getDate();
-                const habitMonth = habitCreatedDate.getMonth();
-                const habitYear = habitCreatedDate.getFullYear();
-                
-                const isHabitCreatedThisMonth = habitYear === selectedYear && habitMonth === selectedMonth;
-                const startDay = isHabitCreatedThisMonth ? habitCreatedDay : 1;
-                const validDays = daysInMonth - startDay + 1;
+            try {
+                const stats = habits.map(habit => {
+                    const habitCreatedDate = new Date(habit.created_at);
+                    const habitCreatedDay = habitCreatedDate.getDate();
+                    const habitMonth = habitCreatedDate.getMonth();
+                    const habitYear = habitCreatedDate.getFullYear();
+                    
+                    const isHabitCreatedThisMonth = habitYear === selectedYear && habitMonth === selectedMonth;
+                    const startDay = isHabitCreatedThisMonth ? habitCreatedDay : 1;
+                    const validDays = daysInMonth - startDay + 1;
 
-                let count = 0;
-                for (let d = startDay; d <= daysInMonth; d++) {
-                    if (completions[`${habit.id}-${d}`]) count++;
-                }
-                
-                const pct = validDays > 0 ? Math.round((count / validDays) * 100) : 0;
-                return { name: habit.name, count, pct, validDays };
-            });
-
-            if (stats.length === 0) {
-                document.getElementById('overallVal').textContent = '0%';
-                document.getElementById('bestName').textContent = 'No habits yet';
-                document.getElementById('worstName').textContent = 'Add habits to start';
-                return;
-            }
-
-            const totalDone = stats.reduce((sum, s) => sum + s.count, 0);
-            const totalPossible = stats.reduce((sum, s) => sum + s.validDays, 0);
-            const overallPct = totalPossible > 0 ? ((totalDone / totalPossible) * 100).toFixed(1) : 0;
-
-            document.getElementById('overallVal').textContent = overallPct + '%';
-
-            const sortedStats = [...stats].sort((a, b) => b.pct - a.pct);
-            const best = sortedStats[0];
-            const worst = sortedStats[sortedStats.length - 1];
-
-            document.getElementById('bestName').textContent = best.name;
-            document.getElementById('bestScore').textContent = `${best.pct}% complete`;
-            document.getElementById('worstName').textContent = worst.name;
-            document.getElementById('worstScore').textContent = `${worst.pct}% complete`;
-
-            // Line Chart - Daily Performance
-            const dailyPerformance = Array.from({length: daysInMonth}, (_, i) => {
-                const day = i + 1;
-                const dayHabits = habits.filter(h => {
-                    const createdDay = new Date(h.created_at).getDate();
-                    const createdMonth = new Date(h.created_at).getMonth();
-                    const createdYear = new Date(h.created_at).getFullYear();
-                    return !(createdYear === selectedYear && createdMonth === selectedMonth && day < createdDay);
+                    let count = 0;
+                    for (let d = startDay; d <= daysInMonth; d++) {
+                        if (completions[`${habit.id}-${d}`]) count++;
+                    }
+                    
+                    const pct = validDays > 0 ? Math.round((count / validDays) * 100) : 0;
+                    return { name: habit.name, count, pct, validDays };
                 });
-                const completed = dayHabits.filter(h => completions[`${h.id}-${day}`]).length;
-                return dayHabits.length > 0 ? (completed / dayHabits.length) * 100 : 0;
-            });
 
-            if (charts.lineChart) charts.lineChart.destroy();
-            charts.lineChart = new Chart(document.getElementById('lineChart'), {
-                type: 'line',
-                data: {
-                    labels: Array.from({length: daysInMonth}, (_, i) => i + 1),
-                    datasets: [{
-                        data: dailyPerformance,
-                        borderColor: '#4f46e5',
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: 'rgba(79, 70, 229, 0.05)',
-                        pointRadius: 2
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { min: 0, max: 100, ticks: { callback: v => v + '%' } },
-                        x: { grid: { display: false } }
+                if (stats.length === 0) {
+                    document.getElementById('overallVal').textContent = '0%';
+                    document.getElementById('bestName').textContent = 'No habits yet';
+                    document.getElementById('worstName').textContent = 'Add habits to start';
+                    return;
+                }
+
+                const totalDone = stats.reduce((sum, s) => sum + s.count, 0);
+                const totalPossible = stats.reduce((sum, s) => sum + s.validDays, 0);
+                const overallPct = totalPossible > 0 ? ((totalDone / totalPossible) * 100).toFixed(1) : 0;
+
+                document.getElementById('overallVal').textContent = overallPct + '%';
+
+                const sortedStats = [...stats].sort((a, b) => b.pct - a.pct);
+                const best = sortedStats[0];
+                const worst = sortedStats[sortedStats.length - 1];
+
+                document.getElementById('bestName').textContent = best.name;
+                document.getElementById('bestScore').textContent = `${best.pct}% complete`;
+                document.getElementById('worstName').textContent = worst.name;
+                document.getElementById('worstScore').textContent = `${worst.pct}% complete`;
+
+                // Line Chart - Daily Performance
+                const dailyPerformance = Array.from({length: daysInMonth}, (_, i) => {
+                    const day = i + 1;
+                    const dayHabits = habits.filter(h => {
+                        const createdDay = new Date(h.created_at).getDate();
+                        const createdMonth = new Date(h.created_at).getMonth();
+                        const createdYear = new Date(h.created_at).getFullYear();
+                        return !(createdYear === selectedYear && createdMonth === selectedMonth && day < createdDay);
+                    });
+                    const completed = dayHabits.filter(h => completions[`${h.id}-${day}`]).length;
+                    return dayHabits.length > 0 ? (completed / dayHabits.length) * 100 : 0;
+                });
+
+                if (charts.lineChart) charts.lineChart.destroy();
+                charts.lineChart = new Chart(document.getElementById('lineChart'), {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: daysInMonth}, (_, i) => i + 1),
+                        datasets: [{
+                            data: dailyPerformance,
+                            borderColor: '#4f46e5',
+                            tension: 0.4,
+                            fill: true,
+                            backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                            pointRadius: 2
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { min: 0, max: 100, ticks: { callback: v => v + '%' } },
+                            x: { grid: { display: false } }
+                        }
                     }
-                }
-            });
+                });
 
-            // Pie Chart - Overall Completion
-            if (charts.pieChart) charts.pieChart.destroy();
-            charts.pieChart = new Chart(document.getElementById('pieChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Done', 'Left'],
-                    datasets: [{
-                        data: [totalDone, totalPossible - totalDone],
-                        backgroundColor: ['#10b981', '#f1f5f9'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-
-            // Best Habits Chart
-            const top5Best = sortedStats.slice(0, 5);
-            if (charts.bestChart) charts.bestChart.destroy();
-            charts.bestChart = new Chart(document.getElementById('bestChart'), {
-                type: 'bar',
-                data: {
-                    labels: top5Best.map(s => s.name.length > 15 ? s.name.substring(0, 15) + '...' : s.name),
-                    datasets: [{
-                        data: top5Best.map(s => s.pct),
-                        backgroundColor: '#10b981',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                // Pie Chart - Overall Completion
+                if (charts.pieChart) charts.pieChart.destroy();
+                charts.pieChart = new Chart(document.getElementById('pieChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Done', 'Left'],
+                        datasets: [{
+                            data: [totalDone, totalPossible - totalDone],
+                            backgroundColor: ['#10b981', '#f1f5f9'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
                     }
-                }
-            });
+                });
 
-            // Worst Habits Chart
-            const top5Worst = [...sortedStats].reverse().slice(0, 5);
-            if (charts.worstChart) charts.worstChart.destroy();
-            charts.worstChart = new Chart(document.getElementById('worstChart'), {
-                type: 'bar',
-                data: {
-                    labels: top5Worst.map(s => s.name.length > 15 ? s.name.substring(0, 15) + '...' : s.name),
-                    datasets: [{
-                        data: top5Worst.map(s => s.pct),
-                        backgroundColor: '#ef4444',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                // Best Habits Chart
+                const top5Best = sortedStats.slice(0, 5);
+                if (charts.bestChart) charts.bestChart.destroy();
+                charts.bestChart = new Chart(document.getElementById('bestChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: top5Best.map(s => s.name.length > 15 ? s.name.substring(0, 15) + '...' : s.name),
+                        datasets: [{
+                            data: top5Best.map(s => s.pct),
+                            backgroundColor: '#10b981',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                        }
                     }
-                }
-            });
+                });
+
+                // Worst Habits Chart
+                const top5Worst = [...sortedStats].reverse().slice(0, 5);
+                if (charts.worstChart) charts.worstChart.destroy();
+                charts.worstChart = new Chart(document.getElementById('worstChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: top5Worst.map(s => s.name.length > 15 ? s.name.substring(0, 15) + '...' : s.name),
+                        datasets: [{
+                            data: top5Worst.map(s => s.pct),
+                            backgroundColor: '#ef4444',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Analytics update error:', error);
+                // Don't block the app if analytics fail
+            }
         }
 
         // Check auth on load
         (async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                await initApp();
+            try {
+                console.log('🔐 Checking authentication...');
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                
+                if (error) {
+                    console.error('Auth check error:', error);
+                    return;
+                }
+                
+                if (session) {
+                    console.log('✅ User authenticated');
+                    currentUser = session.user;
+                    await initApp();
+                } else {
+                    console.log('ℹ️ No active session - showing login');
+                }
+            } catch (error) {
+                console.error('❌ Auth initialization error:', error);
+                alert('Authentication check failed: ' + error.message);
             }
         })();
     </script>
