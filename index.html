@@ -711,6 +711,7 @@
                 const dateStr = date.toISOString().split('T')[0];
 
                 if (completions[key]) {
+                    // Delete the completion
                     const { error } = await supabaseClient
                         .from('habit_completions')
                         .delete()
@@ -721,18 +722,48 @@
                     if (error) throw error;
                     delete completions[key];
                 } else {
-                    const { error } = await supabaseClient
+                    // Check if completion already exists in database (in case JS state is out of sync)
+                    const { data: existing } = await supabaseClient
                         .from('habit_completions')
-                        .insert({ habit_id: habitId, user_id: currentUser.id, completion_date: dateStr });
+                        .select('id')
+                        .eq('habit_id', habitId)
+                        .eq('completion_date', dateStr)
+                        .eq('user_id', currentUser.id)
+                        .maybeSingle();
 
-                    if (error) throw error;
-                    completions[key] = true;
+                    if (existing) {
+                        // Already exists - just update local state
+                        completions[key] = true;
+                    } else {
+                        // Insert new completion
+                        const { error } = await supabaseClient
+                            .from('habit_completions')
+                            .insert({ 
+                                habit_id: habitId, 
+                                user_id: currentUser.id, 
+                                completion_date: dateStr 
+                            });
+
+                        if (error) {
+                            // If still duplicate error, the record was just created
+                            if (error.code === '23505') {
+                                console.log('Completion already exists, updating local state');
+                                completions[key] = true;
+                            } else {
+                                throw error;
+                            }
+                        } else {
+                            completions[key] = true;
+                        }
+                    }
                 }
 
                 renderTable();
             } catch (error) {
                 console.error('Toggle cell error:', error);
                 alert('Failed to update completion: ' + error.message);
+                // Reload to sync with database
+                await loadHabits();
             }
         }
 
