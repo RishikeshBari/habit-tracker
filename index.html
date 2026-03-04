@@ -470,7 +470,7 @@
     <script>
         // CRITICAL: Update these with your Supabase credentials
         const SUPABASE_URL = 'https://ngxzaywoelxukmrvbhux.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHpheXdvZWx4dWttcnZiaHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NjYwNzgsImV4cCI6MjA4NDA0MjA3OH0.3FRygU5-ftjM7ZKnZTqdB4d8q4_D8NZCG8nGWlKrQYw';
+         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHpheXdvZWx4dWttcnZiaHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NjYwNzgsImV4cCI6MjA4NDA0MjA3OH0.3FRygU5-ftjM7ZKnZTqdB4d8q4_D8NZCG8nGWlKrQYw';
 
         // Comprehensive error handling and library check
         (function() {
@@ -677,11 +677,11 @@
 
                 // Fetch completions
                 const { data: compData, error: compError } = await supabaseClient
-                    .from('completions')
+                    .from('habit_completions')
                     .select('*')
                     .eq('user_id', currentUser.id)
-                    .gte('date', startOfMonth)
-                    .lte('date', endOfMonth);
+                    .gte('completion_date', startOfMonth)
+                    .lte('completion_date', endOfMonth);
 
                 if (compError) {
                     console.error('Completions loading error:', compError);
@@ -690,7 +690,7 @@
 
                 completions = {};
                 (compData || []).forEach(c => {
-                    const d = new Date(c.date);
+                    const d = new Date(c.completion_date);
                     const day = d.getDate();
                     completions[`${c.habit_id}-${day}`] = true;
                 });
@@ -711,18 +711,18 @@
 
                 if (completions[key]) {
                     const { error } = await supabaseClient
-                        .from('completions')
+                        .from('habit_completions')
                         .delete()
                         .eq('habit_id', habitId)
-                        .eq('date', dateStr)
+                        .eq('completion_date', dateStr)
                         .eq('user_id', currentUser.id);
 
                     if (error) throw error;
                     delete completions[key];
                 } else {
                     const { error } = await supabaseClient
-                        .from('completions')
-                        .insert({ habit_id: habitId, user_id: currentUser.id, date: dateStr });
+                        .from('habit_completions')
+                        .insert({ habit_id: habitId, user_id: currentUser.id, completion_date: dateStr });
 
                     if (error) throw error;
                     completions[key] = true;
