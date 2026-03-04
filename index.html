@@ -217,11 +217,11 @@
             width: 100%; 
             border-collapse: collapse; 
             margin-top: 10px; 
-            font-size: 11px; 
+            font-size: 10px; 
         }
         th { 
             background: #f8fafc; 
-            padding: 6px; 
+            padding: 3px; 
             text-align: center; 
             font-weight: 700; 
             border: 1px solid #e2e8f0; 
@@ -229,13 +229,13 @@
             top: 0; 
             z-index: 10; 
         }
-        th.habit-col { text-align: left; width: 200px; }
-        th.stats-col { width: 60px; }
-        th.actions-col { width: 120px; }
-        th.day-col { width: 30px; min-width: 30px; }
+        th.habit-col { text-align: left; width: 400px; }
+        th.stats-col { width: 50px; }
+        th.actions-col { width: 100px; }
+        th.day-col { width: 28px; min-width: 28px; }
         
         td { 
-            padding: 4px; 
+            padding: 1px; 
             text-align: center; 
             border: 1px solid #e2e8f0; 
         }
@@ -246,6 +246,8 @@
             position: sticky;
             left: 0;
             z-index: 5;
+            padding: 3px 6px;
+            font-size: 11px;
         }
         td.stats-col { background: #f0fdf4; font-weight: 700; color: var(--success); }
         td.actions-col { background: #fafafa; }
@@ -279,8 +281,8 @@
         }
 
         input[type="checkbox"] { 
-            width: 18px; 
-            height: 18px; 
+            width: 14px; 
+            height: 14px; 
             cursor: pointer; 
             accent-color: var(--success); 
         }
@@ -292,10 +294,10 @@
         tr.selected { background: #e0e7ff !important; }
         
         .action-btn {
-            padding: 4px 8px;
+            padding: 3px 6px;
             border: none;
             border-radius: 4px;
-            font-size: 10px;
+            font-size: 9px;
             cursor: pointer;
             font-weight: 600;
             margin: 0 2px;
@@ -444,7 +446,7 @@
                                 <th class="habit-col">Habit</th>
                                 <th class="stats-col">Done</th>
                                 <th class="stats-col">%</th>
-                                <th class="day-col" id="dayHeaders"></th>
+                                <!-- Day headers will be inserted here dynamically -->
                                 <th class="actions-col">Actions</th>
                             </tr>
                         </thead>
@@ -470,7 +472,7 @@
     <script>
         // CRITICAL: Update these with your Supabase credentials
         const SUPABASE_URL = 'https://ngxzaywoelxukmrvbhux.supabase.co';
-         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHpheXdvZWx4dWttcnZiaHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NjYwNzgsImV4cCI6MjA4NDA0MjA3OH0.3FRygU5-ftjM7ZKnZTqdB4d8q4_D8NZCG8nGWlKrQYw';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHpheXdvZWx4dWttcnZiaHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NjYwNzgsImV4cCI6MjA4NDA0MjA3OH0.3FRygU5-ftjM7ZKnZTqdB4d8q4_D8NZCG8nGWlKrQYw';
 
         // Comprehensive error handling and library check
         (function() {
@@ -619,8 +621,7 @@
                 document.getElementById('userName').textContent = currentUser.email;
 
                 updateMonthDisplay();
-                await loadHabits();
-                renderTable();
+                await loadHabits(); // This already calls renderTable()
                 console.log('✅ App initialized successfully');
             } catch (error) {
                 console.error('❌ App initialization error:', error);
@@ -828,23 +829,23 @@
             try {
                 console.log('🔄 Updating positions...', habitIds);
                 
-                // Batch update: update each habit with its new position
-                const updates = habitIds.map((habitId, index) => ({
-                    id: habitId,
-                    user_id: currentUser.id,
-                    position: index
-                }));
+                // Update each habit's position individually
+                // This ensures we only update the position column, not the entire row
+                const updatePromises = habitIds.map((habitId, index) => 
+                    supabaseClient
+                        .from('habits')
+                        .update({ position: index })
+                        .eq('id', habitId)
+                        .eq('user_id', currentUser.id)
+                );
 
-                const { error } = await supabaseClient
-                    .from('habits')
-                    .upsert(updates, { 
-                        onConflict: 'id',
-                        ignoreDuplicates: false 
-                    });
-
-                if (error) {
-                    console.error('Position update error:', error);
-                    throw error;
+                const results = await Promise.all(updatePromises);
+                
+                // Check if any updates failed
+                const errors = results.filter(r => r.error);
+                if (errors.length > 0) {
+                    console.error('Position update errors:', errors);
+                    throw errors[0].error;
                 }
                 
                 console.log('✅ Positions updated successfully');
@@ -859,17 +860,38 @@
         function renderTable() {
             try {
                 console.log('🎨 Rendering table...');
-                const dayHeaders = document.getElementById('dayHeaders');
-                dayHeaders.innerHTML = '';
+                const headerRow = document.querySelector('thead tr');
+                
+                // Safety check: ensure header row exists
+                if (!headerRow) {
+                    console.error('❌ Header row not found - DOM may not be ready');
+                    return;
+                }
+                
+                // Remove all existing day column headers
+                const existingDayHeaders = headerRow.querySelectorAll('th.day-col');
+                existingDayHeaders.forEach(header => header.remove());
+                
+                // Add day headers in correct order (1 to 31)
+                // Find the Actions column and insert before it
+                const actionsHeader = headerRow.querySelector('.actions-col');
+                if (!actionsHeader) {
+                    console.error('❌ Actions header not found');
+                    return;
+                }
                 
                 for (let d = 1; d <= daysInMonth; d++) {
                     const th = document.createElement('th');
                     th.className = 'day-col';
                     th.textContent = d;
-                    dayHeaders.parentNode.insertBefore(th, dayHeaders.nextSibling);
+                    headerRow.insertBefore(th, actionsHeader);
                 }
 
                 const dailyBody = document.getElementById('dailyBody');
+                if (!dailyBody) {
+                    console.error('❌ Daily body not found');
+                    return;
+                }
                 dailyBody.innerHTML = '';
 
                 habits.forEach(habit => {
