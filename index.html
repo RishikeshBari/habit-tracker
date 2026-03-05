@@ -293,6 +293,47 @@
 
         tr.selected { background: #e0e7ff !important; }
         
+        /* Actions column - ensure buttons stay inline */
+        td.actions-col {
+            background: #fafafa;
+            white-space: nowrap;
+            min-width: 100px;
+        }
+        
+        /* Column highlighting */
+        th.active-column {
+            background: #dbeafe !important;
+            border-left: 2px solid #3b82f6;
+            border-right: 2px solid #3b82f6;
+        }
+        th.active-column.day-col {
+            border-top: 2px solid #3b82f6;
+        }
+        td.active-column {
+            background: #eff6ff !important;
+            border-left: 2px solid #3b82f6;
+            border-right: 2px solid #3b82f6;
+        }
+        tbody tr:last-child td.active-column {
+            border-bottom: 2px solid #3b82f6;
+        }
+        
+        /* Global checkbox row styling */
+        #globalCheckboxRow th {
+            padding: 2px;
+            background: #f1f5f9;
+        }
+        .global-checkbox {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            accent-color: #3b82f6;
+        }
+        .global-checkbox-cell {
+            text-align: center;
+            padding: 2px !important;
+        }
+        
         .action-btn {
             padding: 3px 6px;
             border: none;
@@ -301,9 +342,90 @@
             cursor: pointer;
             font-weight: 600;
             margin: 0 2px;
+            display: inline-block;
         }
         .edit-btn { background: #dbeafe; color: #1e40af; }
         .delete-btn { background: #fee2e2; color: #b91c1c; }
+
+        /* Save/Discard buttons */
+        .save-section {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .save-section.has-changes {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+        .save-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .save-btn, .discard-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .save-btn {
+            background: #10b981;
+            color: white;
+        }
+        .save-btn:hover {
+            background: #059669;
+        }
+        .save-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+        .save-btn.has-changes {
+            background: #f59e0b;
+            animation: pulse 2s infinite;
+        }
+        .save-btn.has-changes:hover {
+            background: #d97706;
+        }
+        .discard-btn {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .discard-btn:hover {
+            background: #e5e7eb;
+        }
+        .discard-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .changes-indicator {
+            font-size: 12px;
+            color: #92400e;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .changes-indicator .dot {
+            width: 8px;
+            height: 8px;
+            background: #f59e0b;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
 
         /* Modal */
         .modal { 
@@ -434,6 +556,22 @@
 
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Save/Discard Section -->
+            <div class="save-section" id="saveSection">
+                <div class="changes-indicator" id="changesIndicator" style="display: none;">
+                    <span class="dot"></span>
+                    <span id="changesCount">0 unsaved changes</span>
+                </div>
+                <div class="save-controls">
+                    <button class="discard-btn" id="discardBtn" onclick="discardChanges()" disabled>
+                        Discard Changes
+                    </button>
+                    <button class="save-btn" id="saveBtn" onclick="saveAllChanges()" disabled>
+                        Save All Changes
+                    </button>
+                </div>
+            </div>
+            
             <div class="table-section">
                 <div class="section-title">
                     <span>Daily Habits</span>
@@ -442,12 +580,19 @@
                 <div class="table-container">
                     <table>
                         <thead>
-                            <tr>
+                            <tr id="headerRow">
                                 <th class="habit-col">Habit</th>
                                 <th class="stats-col">Done</th>
                                 <th class="stats-col">%</th>
                                 <!-- Day headers will be inserted here dynamically -->
                                 <th class="actions-col">Actions</th>
+                            </tr>
+                            <tr id="globalCheckboxRow">
+                                <th class="habit-col"></th>
+                                <th class="stats-col"></th>
+                                <th class="stats-col"></th>
+                                <!-- Global checkboxes will be inserted here dynamically -->
+                                <th class="actions-col"></th>
                             </tr>
                         </thead>
                         <tbody id="dailyBody"></tbody>
@@ -524,6 +669,8 @@
         let selectedRow = null;
         let editingHabitId = null;
         let sortableInstance = null;
+        let selectedColumn = null; // Track selected date column for highlighting
+        let pendingChanges = {}; // Track unsaved changes: { 'habitId-day': 'add' | 'remove' }
 
         // Date state
         let currentDate = new Date();
@@ -637,6 +784,13 @@
         }
 
         function changeMonth(delta) {
+            // Check for unsaved changes
+            if (Object.keys(pendingChanges).length > 0) {
+                if (!confirm('You have unsaved changes. Changing months will discard them. Continue?')) {
+                    return;
+                }
+            }
+            
             selectedMonth += delta;
             if (selectedMonth < 0) { selectedMonth = 11; selectedYear--; }
             if (selectedMonth > 11) { selectedMonth = 0; selectedYear++; }
@@ -647,6 +801,13 @@
         }
 
         function goToCurrentMonth() {
+            // Check for unsaved changes
+            if (Object.keys(pendingChanges).length > 0) {
+                if (!confirm('You have unsaved changes. Going to current month will discard them. Continue?')) {
+                    return;
+                }
+            }
+            
             currentDate = new Date();
             selectedMonth = currentDate.getMonth();
             selectedYear = currentDate.getFullYear();
@@ -697,6 +858,10 @@
                 });
                 console.log(`✅ Loaded ${Object.keys(completions).length} completions`);
 
+                // Clear pending changes when loading fresh data
+                pendingChanges = {};
+                updateSaveButtonState();
+
                 renderTable();
             } catch (error) {
                 console.error('❌ Load habits error:', error);
@@ -707,63 +872,31 @@
         async function toggleCell(habitId, day) {
             try {
                 const key = `${habitId}-${day}`;
-                const date = new Date(selectedYear, selectedMonth, day);
-                const dateStr = date.toISOString().split('T')[0];
-
-                if (completions[key]) {
-                    // Delete the completion
-                    const { error } = await supabaseClient
-                        .from('habit_completions')
-                        .delete()
-                        .eq('habit_id', habitId)
-                        .eq('completion_date', dateStr)
-                        .eq('user_id', currentUser.id);
-
-                    if (error) throw error;
-                    delete completions[key];
+                const currentState = completions[key] || false;
+                const newState = !currentState;
+                
+                // Update UI state immediately (temporary)
+                if (newState) {
+                    completions[key] = true;
                 } else {
-                    // Check if completion already exists in database (in case JS state is out of sync)
-                    const { data: existing } = await supabaseClient
-                        .from('habit_completions')
-                        .select('id')
-                        .eq('habit_id', habitId)
-                        .eq('completion_date', dateStr)
-                        .eq('user_id', currentUser.id)
-                        .maybeSingle();
-
-                    if (existing) {
-                        // Already exists - just update local state
-                        completions[key] = true;
-                    } else {
-                        // Insert new completion
-                        const { error } = await supabaseClient
-                            .from('habit_completions')
-                            .insert({ 
-                                habit_id: habitId, 
-                                user_id: currentUser.id, 
-                                completion_date: dateStr 
-                            });
-
-                        if (error) {
-                            // If still duplicate error, the record was just created
-                            if (error.code === '23505') {
-                                console.log('Completion already exists, updating local state');
-                                completions[key] = true;
-                            } else {
-                                throw error;
-                            }
-                        } else {
-                            completions[key] = true;
-                        }
-                    }
+                    delete completions[key];
                 }
-
+                
+                // Track this change as pending
+                if (newState) {
+                    pendingChanges[key] = 'add';
+                } else {
+                    pendingChanges[key] = 'remove';
+                }
+                
+                // Re-render table to show updated state
                 renderTable();
+                
+                // Update save button state
+                updateSaveButtonState();
             } catch (error) {
                 console.error('Toggle cell error:', error);
                 alert('Failed to update completion: ' + error.message);
-                // Reload to sync with database
-                await loadHabits();
             }
         }
 
@@ -888,34 +1021,331 @@
             }
         }
 
+        // NEW: Select and highlight a date column
+        function selectColumn(day) {
+            selectedColumn = day;
+            
+            // Remove all existing column highlights
+            document.querySelectorAll('.active-column').forEach(el => {
+                el.classList.remove('active-column');
+            });
+            
+            // Add highlight to selected column
+            // Highlight day header
+            const dayHeader = document.querySelector(`th.day-col[data-day="${day}"]`);
+            if (dayHeader) dayHeader.classList.add('active-column');
+            
+            // Highlight global checkbox cell
+            const globalCell = document.querySelector(`th.global-checkbox-cell[data-day="${day}"]`);
+            if (globalCell) globalCell.classList.add('active-column');
+            
+            // Highlight all cells in the column
+            document.querySelectorAll(`td[data-day="${day}"]`).forEach(td => {
+                td.classList.add('active-column');
+            });
+        }
+
+        // NEW: Toggle all checkboxes in a column (without saving immediately)
+        function toggleColumnCheckboxes(day) {
+            try {
+                const globalCheckbox = document.querySelector(`.global-checkbox[data-day="${day}"]`);
+                const shouldCheck = globalCheckbox.checked;
+                
+                // Select and highlight the column
+                selectColumn(day);
+                
+                // Get all checkbox inputs in this column
+                const columnCells = document.querySelectorAll(`td[data-day="${day}"]`);
+                
+                columnCells.forEach(td => {
+                    const checkbox = td.querySelector('input[type="checkbox"]:not(:disabled)');
+                    if (!checkbox) return;
+                    
+                    const habitRow = td.closest('tr');
+                    const habitId = habitRow?.dataset.habitId;
+                    if (!habitId) return;
+                    
+                    const key = `${habitId}-${day}`;
+                    const currentState = completions[key] || false;
+                    
+                    // Only update if state needs to change
+                    if (currentState !== shouldCheck) {
+                        checkbox.checked = shouldCheck;
+                        
+                        // Update UI state immediately (temporary)
+                        if (shouldCheck) {
+                            completions[key] = true;
+                            pendingChanges[key] = 'add';
+                        } else {
+                            delete completions[key];
+                            pendingChanges[key] = 'remove';
+                        }
+                    }
+                });
+                
+                // Re-render table to update stats
+                renderTable();
+                
+                // Update save button state
+                updateSaveButtonState();
+            } catch (error) {
+                console.error('Toggle column error:', error);
+                alert('Failed to update column: ' + error.message);
+            }
+        }
+
+        // NEW: Update global checkbox states based on individual checkboxes
+        function updateGlobalCheckboxStates() {
+            for (let d = 1; d <= daysInMonth; d++) {
+                const globalCheckbox = document.querySelector(`.global-checkbox[data-day="${d}"]`);
+                if (!globalCheckbox) continue;
+                
+                // Get all checkboxes in this column (excluding disabled ones)
+                const columnCells = document.querySelectorAll(`td[data-day="${d}"]`);
+                const checkboxes = Array.from(columnCells)
+                    .map(td => td.querySelector('input[type="checkbox"]:not(:disabled)'))
+                    .filter(cb => cb !== null);
+                
+                if (checkboxes.length === 0) {
+                    globalCheckbox.checked = false;
+                    globalCheckbox.indeterminate = false;
+                    continue;
+                }
+                
+                const checkedCount = checkboxes.filter(cb => cb.checked).length;
+                
+                if (checkedCount === 0) {
+                    globalCheckbox.checked = false;
+                    globalCheckbox.indeterminate = false;
+                } else if (checkedCount === checkboxes.length) {
+                    globalCheckbox.checked = true;
+                    globalCheckbox.indeterminate = false;
+                } else {
+                    globalCheckbox.checked = false;
+                    globalCheckbox.indeterminate = true;
+                }
+            }
+        }
+
+        // NEW: Update Save button state based on pending changes
+        function updateSaveButtonState() {
+            const changeCount = Object.keys(pendingChanges).length;
+            const saveBtn = document.getElementById('saveBtn');
+            const discardBtn = document.getElementById('discardBtn');
+            const saveSection = document.getElementById('saveSection');
+            const changesIndicator = document.getElementById('changesIndicator');
+            const changesCount = document.getElementById('changesCount');
+            
+            if (changeCount > 0) {
+                saveBtn.disabled = false;
+                saveBtn.classList.add('has-changes');
+                discardBtn.disabled = false;
+                saveSection.classList.add('has-changes');
+                changesIndicator.style.display = 'flex';
+                changesCount.textContent = `${changeCount} unsaved change${changeCount > 1 ? 's' : ''}`;
+            } else {
+                saveBtn.disabled = true;
+                saveBtn.classList.remove('has-changes');
+                discardBtn.disabled = true;
+                saveSection.classList.remove('has-changes');
+                changesIndicator.style.display = 'none';
+            }
+        }
+
+        // NEW: Save all pending changes to database
+        async function saveAllChanges() {
+            if (Object.keys(pendingChanges).length === 0) {
+                return;
+            }
+            
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.textContent;
+            
+            try {
+                saveBtn.textContent = 'Saving...';
+                saveBtn.disabled = true;
+                
+                const insertions = [];
+                const deletions = [];
+                
+                console.log('📝 Pending changes:', pendingChanges);
+                
+                // Prepare all changes
+                for (const [key, action] of Object.entries(pendingChanges)) {
+                    console.log('Processing key:', key);
+                    
+                    // Key format: "habitId-day" where habitId is UUID (contains dashes!)
+                    // So we need to get the last part after the last dash
+                    const lastDashIndex = key.lastIndexOf('-');
+                    const habitId = key.substring(0, lastDashIndex);
+                    const dayStr = key.substring(lastDashIndex + 1);
+                    
+                    console.log('Parsed - habitId:', habitId, 'dayStr:', dayStr);
+                    
+                    const day = parseInt(dayStr, 10);
+                    
+                    console.log('Day as number:', day);
+                    
+                    if (isNaN(day)) {
+                        console.error('❌ Invalid day parsed from key:', key);
+                        throw new Error(`Invalid day in key: ${key}. Parsed day: ${dayStr}`);
+                    }
+                    
+                    // Create date properly with padding
+                    const year = selectedYear;
+                    const month = selectedMonth + 1; // Month is 0-indexed, need 1-indexed for ISO
+                    const dayPadded = day.toString().padStart(2, '0');
+                    const monthPadded = month.toString().padStart(2, '0');
+                    const dateStr = `${year}-${monthPadded}-${dayPadded}`;
+                    
+                    console.log('Created date string:', dateStr);
+                    
+                    if (action === 'add') {
+                        insertions.push({
+                            habit_id: habitId,
+                            user_id: currentUser.id,
+                            completion_date: dateStr
+                        });
+                    } else if (action === 'remove') {
+                        deletions.push({ habitId, dateStr });
+                    }
+                }
+                
+                console.log('📤 Insertions:', insertions);
+                console.log('🗑️ Deletions:', deletions);
+                
+                // Execute all insertions
+                if (insertions.length > 0) {
+                    const { error } = await supabaseClient
+                        .from('habit_completions')
+                        .insert(insertions);
+                    
+                    // Ignore duplicate key errors (23505)
+                    if (error && error.code !== '23505') {
+                        throw error;
+                    }
+                }
+                
+                // Execute all deletions
+                for (const { habitId, dateStr } of deletions) {
+                    const { error } = await supabaseClient
+                        .from('habit_completions')
+                        .delete()
+                        .eq('habit_id', habitId)
+                        .eq('completion_date', dateStr)
+                        .eq('user_id', currentUser.id);
+                    
+                    if (error) {
+                        console.error('Delete error:', error);
+                        // Continue with other deletions even if one fails
+                    }
+                }
+                
+                // Clear pending changes
+                pendingChanges = {};
+                
+                // Update save button state
+                updateSaveButtonState();
+                
+                // Show success feedback
+                saveBtn.textContent = '✓ Saved!';
+                saveBtn.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    saveBtn.textContent = originalText;
+                    saveBtn.style.background = '';
+                }, 2000);
+                
+                console.log('✅ All changes saved successfully');
+            } catch (error) {
+                console.error('❌ Save error:', error);
+                alert('Failed to save changes: ' + error.message);
+                saveBtn.textContent = originalText;
+                saveBtn.disabled = false;
+                
+                // Reload to sync with database
+                await loadHabits();
+            }
+        }
+
+        // NEW: Discard all pending changes
+        async function discardChanges() {
+            if (!confirm('Discard all unsaved changes?')) {
+                return;
+            }
+            
+            // Clear pending changes
+            pendingChanges = {};
+            
+            // Reload from database to reset UI state
+            await loadHabits();
+            
+            // Update save button state
+            updateSaveButtonState();
+            
+            console.log('🔄 Changes discarded, reloaded from database');
+        }
+
         function renderTable() {
             try {
                 console.log('🎨 Rendering table...');
-                const headerRow = document.querySelector('thead tr');
+                const headerRow = document.getElementById('headerRow');
+                const globalCheckboxRow = document.getElementById('globalCheckboxRow');
                 
-                // Safety check: ensure header row exists
-                if (!headerRow) {
-                    console.error('❌ Header row not found - DOM may not be ready');
+                // Safety check: ensure header rows exist
+                if (!headerRow || !globalCheckboxRow) {
+                    console.error('❌ Header rows not found - DOM may not be ready');
                     return;
                 }
                 
-                // Remove all existing day column headers
+                // Remove all existing day column headers and global checkboxes
                 const existingDayHeaders = headerRow.querySelectorAll('th.day-col');
                 existingDayHeaders.forEach(header => header.remove());
                 
-                // Add day headers in correct order (1 to 31)
+                const existingGlobalCheckboxes = globalCheckboxRow.querySelectorAll('th.global-checkbox-cell');
+                existingGlobalCheckboxes.forEach(cell => cell.remove());
+                
                 // Find the Actions column and insert before it
                 const actionsHeader = headerRow.querySelector('.actions-col');
-                if (!actionsHeader) {
+                const actionsGlobalCell = globalCheckboxRow.querySelector('.actions-col');
+                if (!actionsHeader || !actionsGlobalCell) {
                     console.error('❌ Actions header not found');
                     return;
                 }
                 
+                // Add day headers and global checkboxes in correct order (1 to 31)
                 for (let d = 1; d <= daysInMonth; d++) {
+                    // Add day header
                     const th = document.createElement('th');
                     th.className = 'day-col';
                     th.textContent = d;
+                    th.dataset.day = d;
+                    
+                    // Apply column highlighting if this is the selected column
+                    if (selectedColumn === d) {
+                        th.classList.add('active-column');
+                    }
+                    
                     headerRow.insertBefore(th, actionsHeader);
+                    
+                    // Add global checkbox for this day
+                    const globalTh = document.createElement('th');
+                    globalTh.className = 'global-checkbox-cell';
+                    globalTh.dataset.day = d;
+                    
+                    // Apply column highlighting if this is the selected column
+                    if (selectedColumn === d) {
+                        globalTh.classList.add('active-column');
+                    }
+                    
+                    const globalCheckbox = document.createElement('input');
+                    globalCheckbox.type = 'checkbox';
+                    globalCheckbox.className = 'global-checkbox';
+                    globalCheckbox.dataset.day = d;
+                    globalCheckbox.onclick = () => toggleColumnCheckboxes(d);
+                    
+                    globalTh.appendChild(globalCheckbox);
+                    globalCheckboxRow.insertBefore(globalTh, actionsGlobalCell);
                 }
 
                 const dailyBody = document.getElementById('dailyBody');
@@ -967,11 +1397,18 @@
 
                     for (let d = 1; d <= daysInMonth; d++) {
                         const td = document.createElement('td');
+                        td.dataset.day = d;
+                        
+                        // Apply column highlighting if this is the selected column
+                        if (selectedColumn === d) {
+                            td.classList.add('active-column');
+                        }
+                        
                         if (isHabitCreatedThisMonth && d < habitCreatedDay) {
                             td.innerHTML = '<input type="checkbox" disabled>';
                         } else {
                             const checked = completions[`${habit.id}-${d}`] ? 'checked' : '';
-                            td.innerHTML = `<input type="checkbox" ${checked} onchange="toggleCell('${habit.id}', ${d})">`;
+                            td.innerHTML = `<input type="checkbox" ${checked} onchange="toggleCell('${habit.id}', ${d})" onclick="selectColumn(${d})">`;
                         }
                         tr.appendChild(td);
                     }
@@ -986,6 +1423,9 @@
 
                     dailyBody.appendChild(tr);
                 });
+
+                // Update global checkbox states after rendering
+                updateGlobalCheckboxStates();
 
                 // Initialize drag-and-drop if SortableJS is available
                 if (typeof Sortable !== 'undefined') {
