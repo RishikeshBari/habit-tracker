@@ -239,16 +239,27 @@
             text-align: center; 
             border: 1px solid #e2e8f0; 
         }
-        td.habit-col { 
-            text-align: left; 
-            font-weight: 600; 
-            background: #fafafa;
-            position: sticky;
-            left: 0;
-            z-index: 5;
-            padding: 3px 6px;
-            font-size: 11px;
-        }
+		td.habit-col { 
+				text-align: left; 
+				font-weight: 600; 
+				background: #fafafa;
+				position: sticky;
+				left: 0;
+				z-index: 5;
+				padding: 3px 6px;
+				font-size: 11px;
+				white-space: nowrap;
+			}
+
+			/* Habit name scroll container */
+			.habit-name-scroll {
+				display: inline-block;
+				max-width: calc(100% - 20px);
+				overflow-x: auto;
+				white-space: nowrap;
+				vertical-align: middle;
+				scrollbar-width: thin;
+			}
         td.stats-col { background: #f0fdf4; font-weight: 700; color: var(--success); }
         td.actions-col { background: #fafafa; }
 
@@ -1382,12 +1393,15 @@
                         : '';
                     
                     tr.innerHTML = `
-                        <td class="habit-col">
-                            ${dragHandle}${habit.name}
-                        </td>
-                        <td class="stats-col">${done}</td>
-                        <td class="stats-col">${pct}%</td>
-                    `;
+					<td class="habit-col">
+						${dragHandle}
+						<div class="habit-name-scroll" title="${habit.name}">
+							${habit.name}
+						</div>
+					</td>
+					<td class="stats-col">${done}</td>
+					<td class="stats-col">${pct}%</td>
+					`;
                     
                     tr.addEventListener('click', (e) => {
                         if (!e.target.classList.contains('drag-handle')) {
