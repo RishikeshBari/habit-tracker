@@ -6,7 +6,6 @@
     <title>Elite Routine Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- SortableJS for drag-and-drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -212,6 +211,24 @@
             font-weight: 600;
         }
 
+        /* Section divider button */
+        .add-section-btn {
+            padding: 6px 12px;
+            background: #f1f5f9;
+            color: var(--text-main);
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .add-section-btn:hover {
+            background: #e2e8f0;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
         .table-container { overflow-x: auto; }
         table { 
             width: 100%; 
@@ -239,27 +256,27 @@
             text-align: center; 
             border: 1px solid #e2e8f0; 
         }
-		td.habit-col { 
-				text-align: left; 
-				font-weight: 600; 
-				background: #fafafa;
-				position: sticky;
-				left: 0;
-				z-index: 5;
-				padding: 3px 6px;
-				font-size: 11px;
-				white-space: nowrap;
-			}
+        td.habit-col { 
+            text-align: left; 
+            font-weight: 600; 
+            background: #fafafa;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            padding: 3px 6px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
 
-			/* Habit name scroll container */
-			.habit-name-scroll {
-				display: inline-block;
-				max-width: calc(100% - 20px);
-				overflow-x: auto;
-				white-space: nowrap;
-				vertical-align: middle;
-				scrollbar-width: thin;
-			}
+        /* Habit name scroll container */
+        .habit-name-scroll {
+            display: inline-block;
+            max-width: calc(100% - 20px);
+            overflow-x: auto;
+            white-space: nowrap;
+            vertical-align: middle;
+            scrollbar-width: thin;
+        }
         td.stats-col { background: #f0fdf4; font-weight: 700; color: var(--success); }
         td.actions-col { background: #fafafa; }
 
@@ -304,7 +321,7 @@
 
         tr.selected { background: #e0e7ff !important; }
         
-        /* Actions column - ensure buttons stay inline */
+        /* Actions column */
         td.actions-col {
             background: #fafafa;
             white-space: nowrap;
@@ -469,6 +486,13 @@
             margin-bottom: 15px; 
             font-size: 14px; 
         }
+        .modal-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-sub);
+            margin-bottom: 5px;
+        }
         .modal-actions { display: flex; gap: 10px; }
         .modal-btn { 
             flex: 1; 
@@ -481,6 +505,137 @@
         }
         .modal-btn-primary { background: var(--primary); color: white; }
         .modal-btn-secondary { background: #e2e8f0; color: var(--text-main); }
+
+        /* =============================================
+           DIVIDER / SECTION STYLES (NEW)
+           ============================================= */
+
+        /* Divider row in the table */
+        .divider-row td {
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8f0ff 100%);
+            border-top: 2px solid #c7d2fe;
+            border-bottom: 2px solid #c7d2fe;
+            padding: 0 !important;
+            position: sticky;
+            left: 0;
+            z-index: 6;
+        }
+
+        .divider-row-inner {
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            gap: 8px;
+        }
+
+        .divider-drag-handle {
+            cursor: grab;
+            color: #a5b4fc;
+            font-size: 12px;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .divider-drag-handle:active { cursor: grabbing; }
+
+        .divider-icon {
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .divider-title-text {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            flex: 1;
+        }
+
+        .divider-actions-group {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .divider-action-btn {
+            padding: 2px 7px;
+            border: none;
+            border-radius: 4px;
+            font-size: 9px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s;
+        }
+        .divider-edit-btn {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        .divider-edit-btn:hover { background: #c7d2fe; }
+        .divider-delete-btn {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .divider-delete-btn:hover { background: #fecaca; }
+
+        /* Divider modal color picker */
+        .color-picker-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .color-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.15s;
+        }
+        .color-swatch.selected {
+            border-color: var(--text-main);
+            transform: scale(1.15);
+        }
+
+        /* Habit row indentation under a divider */
+        .habit-indented .habit-name-scroll {
+            margin-left: 8px;
+        }
+
+        /* Collapsed section — hide its habit rows */
+        .habit-row-hidden { display: none !important; }
+
+        /* Collapse toggle arrow */
+        .divider-collapse-btn {
+            background: none; border: none; cursor: pointer;
+            padding: 0 4px; font-size: 13px; color: #a5b4fc;
+            transition: transform 0.2s ease; line-height: 1;
+            flex-shrink: 0; user-select: none;
+        }
+        .divider-collapse-btn.collapsed { transform: rotate(-90deg); }
+
+        /* Habit count badge shown only when collapsed */
+        .divider-count-badge {
+            display: none;
+            background: #e0e7ff; color: var(--primary);
+            font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 99px; margin-left: 4px;
+        }
+        .divider-row.is-collapsed .divider-count-badge { display: inline-block; }
+
+        /* Clickable title area */
+        .divider-title-area {
+            display: flex; align-items: center; flex: 1;
+            cursor: pointer; gap: 4px;
+        }
+        .divider-title-area:hover .divider-title-text { color: #4338ca; }
+
+        /* Drag-over highlight on divider rows */
+        .divider-row.drag-over-divider td {
+            background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%) !important;
+            border-top: 2px solid var(--primary) !important;
+            border-bottom: 2px solid var(--primary) !important;
+        }
     </style>
 </head>
 <body>
@@ -586,7 +741,11 @@
             <div class="table-section">
                 <div class="section-title">
                     <span>Daily Habits</span>
-                    <button class="add-btn" onclick="openHabitModal()">+ Add Habit</button>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <!-- NEW: Add Section button -->
+                        <button class="add-section-btn" onclick="openDividerModal()">＋ Add Section</button>
+                        <button class="add-btn" onclick="openHabitModal()">+ Add Habit</button>
+                    </div>
                 </div>
                 <div class="table-container">
                     <table>
@@ -595,14 +754,14 @@
                                 <th class="habit-col">Habit</th>
                                 <th class="stats-col">Done</th>
                                 <th class="stats-col">%</th>
-                                <!-- Day headers will be inserted here dynamically -->
+                                <!-- Day headers inserted dynamically -->
                                 <th class="actions-col">Actions</th>
                             </tr>
                             <tr id="globalCheckboxRow">
                                 <th class="habit-col"></th>
                                 <th class="stats-col"></th>
                                 <th class="stats-col"></th>
-                                <!-- Global checkboxes will be inserted here dynamically -->
+                                <!-- Global checkboxes inserted dynamically -->
                                 <th class="actions-col"></th>
                             </tr>
                         </thead>
@@ -613,11 +772,20 @@
         </div>
     </div>
 
-    <!-- Habit Modal -->
+    <!-- =============================================
+         HABIT MODAL (updated with Section dropdown)
+         ============================================= -->
     <div class="modal" id="habitModal">
         <div class="modal-content">
             <h2 id="modalTitle">Add Habit</h2>
-            <input type="text" id="habitName" class="modal-input" placeholder="Habit name">
+            <label class="modal-label">Habit Name</label>
+            <input type="text" id="habitName" class="modal-input" placeholder="e.g. Drink 2.5L Water">
+            <!-- NEW: Section selector -->
+            <label class="modal-label">Section <span style="color:var(--text-sub); font-weight:400;">(optional)</span></label>
+            <select id="habitDivider" class="modal-input">
+                <option value="">— No Section (Ungrouped) —</option>
+                <!-- populated dynamically from dividers array -->
+            </select>
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-secondary" onclick="closeHabitModal()">Cancel</button>
                 <button class="modal-btn modal-btn-primary" onclick="saveHabit()">Save</button>
@@ -625,77 +793,64 @@
         </div>
     </div>
 
+    <!-- =============================================
+         DIVIDER MODAL (NEW)
+         ============================================= -->
+    <div class="modal" id="dividerModal">
+        <div class="modal-content">
+            <h2 id="dividerModalTitle">Add Section</h2>
+            <label class="modal-label">Section Title</label>
+            <input type="text" id="dividerTitle" class="modal-input" placeholder="e.g. Morning Routine, High Priority…">
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeDividerModal()">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveDivider()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // CRITICAL: Update these with your Supabase credentials
+        // ─── Supabase Config ───────────────────────────────────────────────────────
         const SUPABASE_URL = 'https://ngxzaywoelxukmrvbhux.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHpheXdvZWx4dWttcnZiaHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NjYwNzgsImV4cCI6MjA4NDA0MjA3OH0.3FRygU5-ftjM7ZKnZTqdB4d8q4_D8NZCG8nGWlKrQYw';
 
-        // Comprehensive error handling and library check
+        // Dependency check
         (function() {
             console.log('🔍 Checking dependencies...');
-            
-            // Check if libraries loaded
-            if (typeof Chart === 'undefined') {
-                console.error('❌ Chart.js failed to load');
-                alert('Chart.js library failed to load. Please check your internet connection.');
-                return;
-            }
-            console.log('✅ Chart.js loaded');
-            
-            if (typeof supabase === 'undefined') {
-                console.error('❌ Supabase client failed to load');
-                alert('Supabase library failed to load. Please check your internet connection.');
-                return;
-            }
-            console.log('✅ Supabase client loaded');
-            
-            if (typeof Sortable === 'undefined') {
-                console.warn('⚠️ SortableJS failed to load - drag-and-drop will be disabled');
-                // Don't block the app, just disable drag-and-drop
-            } else {
-                console.log('✅ SortableJS loaded');
-            }
-
-            // Check Supabase credentials
-            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_KEY === 'YOUR_SUPABASE_ANON_KEY') {
-                console.error('❌ Supabase credentials not configured');
-                alert('Please update SUPABASE_URL and SUPABASE_KEY in the code (around line 345)');
-                return;
-            }
-            console.log('✅ Supabase credentials configured');
+            if (typeof Chart === 'undefined') { alert('Chart.js failed to load.'); return; }
+            if (typeof supabase === 'undefined') { alert('Supabase failed to load.'); return; }
+            if (typeof Sortable === 'undefined') { console.warn('⚠️ SortableJS not loaded - drag disabled'); }
+            console.log('✅ All dependencies loaded');
         })();
 
         let supabaseClient;
         try {
             supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log('✅ Supabase client initialized');
-        } catch (error) {
-            console.error('❌ Failed to initialize Supabase client:', error);
-            alert('Failed to initialize Supabase. Check console for details.');
+        } catch (e) {
+            alert('Failed to init Supabase: ' + e.message);
         }
 
-        let currentUser = null;
-        let habits = [];
-        let completions = {};
-        let selectedRow = null;
-        let editingHabitId = null;
+        // ─── State ─────────────────────────────────────────────────────────────────
+        let currentUser   = null;
+        let habits        = [];
+        let dividers      = [];          // ← NEW: sections/dividers array
+        let completions   = {};
+        let selectedRow   = null;
+        let editingHabitId   = null;
+        let editingDividerId = null;     // ← NEW
         let sortableInstance = null;
-        let selectedColumn = null; // Track selected date column for highlighting
-        let pendingChanges = {}; // Track unsaved changes: { 'habitId-day': 'add' | 'remove' }
+        let selectedColumn   = null;
+        let pendingChanges   = {};
+        let collapsedSections = new Set(); // IDs of dividers whose habits are hidden
 
         // Date state
-        let currentDate = new Date();
+        let currentDate  = new Date();
         let selectedMonth = currentDate.getMonth();
-        let selectedYear = currentDate.getFullYear();
-        let daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+        let selectedYear  = currentDate.getFullYear();
+        let daysInMonth   = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-        const charts = {
-            lineChart: null,
-            pieChart: null,
-            bestChart: null,
-            worstChart: null
-        };
+        const charts = { lineChart: null, pieChart: null, bestChart: null, worstChart: null };
 
+        // ─── Auth ──────────────────────────────────────────────────────────────────
         function switchToSignup() {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('signupForm').style.display = 'block';
@@ -714,201 +869,136 @@
 
         async function login() {
             try {
-                const email = document.getElementById('loginEmail').value;
+                const email    = document.getElementById('loginEmail').value;
                 const password = document.getElementById('loginPassword').value;
-
-                if (!email || !password) {
-                    showAuthError('Please enter email and password');
-                    return;
-                }
-
+                if (!email || !password) { showAuthError('Please enter email and password'); return; }
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) {
-                    console.error('Login error:', error);
-                    showAuthError(error.message);
-                    return;
-                }
-
+                if (error) { showAuthError(error.message); return; }
                 currentUser = data.user;
                 await initApp();
-            } catch (error) {
-                console.error('Login exception:', error);
-                showAuthError('Login failed: ' + error.message);
-            }
+            } catch (e) { showAuthError('Login failed: ' + e.message); }
         }
 
         async function signup() {
             try {
-                const email = document.getElementById('signupEmail').value;
+                const email    = document.getElementById('signupEmail').value;
                 const password = document.getElementById('signupPassword').value;
-
-                if (!email || !password) {
-                    showAuthError('Please enter email and password');
-                    return;
-                }
-
-                const { data, error } = await supabaseClient.auth.signUp({ email, password });
-                if (error) {
-                    console.error('Signup error:', error);
-                    showAuthError(error.message);
-                    return;
-                }
-
+                if (!email || !password) { showAuthError('Please enter email and password'); return; }
+                const { error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) { showAuthError(error.message); return; }
                 showAuthError('Check your email to confirm signup!');
-            } catch (error) {
-                console.error('Signup exception:', error);
-                showAuthError('Signup failed: ' + error.message);
-            }
+            } catch (e) { showAuthError('Signup failed: ' + e.message); }
         }
 
         async function logout() {
-            try {
-                await supabaseClient.auth.signOut();
-                location.reload();
-            } catch (error) {
-                console.error('Logout error:', error);
-                alert('Logout failed: ' + error.message);
-            }
+            try { await supabaseClient.auth.signOut(); location.reload(); }
+            catch (e) { alert('Logout failed: ' + e.message); }
         }
 
+        // ─── App Init ──────────────────────────────────────────────────────────────
         async function initApp() {
             try {
-                console.log('🚀 Initializing app...');
                 document.getElementById('authScreen').style.display = 'none';
                 document.getElementById('appContainer').classList.add('active');
                 document.getElementById('userName').textContent = currentUser.email;
-
                 updateMonthDisplay();
-                await loadHabits(); // This already calls renderTable()
-                console.log('✅ App initialized successfully');
-            } catch (error) {
-                console.error('❌ App initialization error:', error);
-                alert('Failed to initialize app: ' + error.message);
-            }
+                await loadHabits();
+            } catch (e) { alert('Failed to initialize app: ' + e.message); }
         }
 
         function updateMonthDisplay() {
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                              'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('currentMonthDisplay').textContent = 
-                `${monthNames[selectedMonth]} ${selectedYear}`;
+            const months = ['January','February','March','April','May','June',
+                            'July','August','September','October','November','December'];
+            document.getElementById('currentMonthDisplay').textContent = `${months[selectedMonth]} ${selectedYear}`;
         }
 
         function changeMonth(delta) {
-            // Check for unsaved changes
             if (Object.keys(pendingChanges).length > 0) {
-                if (!confirm('You have unsaved changes. Changing months will discard them. Continue?')) {
-                    return;
-                }
+                if (!confirm('You have unsaved changes. Changing months will discard them. Continue?')) return;
             }
-            
             selectedMonth += delta;
-            if (selectedMonth < 0) { selectedMonth = 11; selectedYear--; }
-            if (selectedMonth > 11) { selectedMonth = 0; selectedYear++; }
-            
+            if (selectedMonth < 0)  { selectedMonth = 11; selectedYear--; }
+            if (selectedMonth > 11) { selectedMonth = 0;  selectedYear++; }
             daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
             updateMonthDisplay();
             loadHabits();
         }
 
         function goToCurrentMonth() {
-            // Check for unsaved changes
             if (Object.keys(pendingChanges).length > 0) {
-                if (!confirm('You have unsaved changes. Going to current month will discard them. Continue?')) {
-                    return;
-                }
+                if (!confirm('You have unsaved changes. Going to current month will discard them. Continue?')) return;
             }
-            
-            currentDate = new Date();
+            currentDate   = new Date();
             selectedMonth = currentDate.getMonth();
-            selectedYear = currentDate.getFullYear();
-            daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+            selectedYear  = currentDate.getFullYear();
+            daysInMonth   = new Date(selectedYear, selectedMonth + 1, 0).getDate();
             updateMonthDisplay();
             loadHabits();
         }
 
+        // ─── Load Data ─────────────────────────────────────────────────────────────
         async function loadHabits() {
             try {
-                console.log('📥 Loading habits...');
                 const startOfMonth = new Date(selectedYear, selectedMonth, 1).toISOString();
-                const endOfMonth = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString();
+                const endOfMonth   = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString();
 
-                // Fetch habits ordered by position
+                // 1. Fetch habits
                 const { data: habitData, error: habitError } = await supabaseClient
                     .from('habits')
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .order('position', { ascending: true, nullsFirst: false });
+                if (habitError) throw habitError;
+                habits = habitData || [];
 
-                if (habitError) {
-                    console.error('Habit loading error:', habitError);
-                    throw habitError;
+                // 2. Fetch dividers (NEW)
+                const { data: dividerData, error: dividerError } = await supabaseClient
+                    .from('dividers')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('position', { ascending: true, nullsFirst: false });
+                // Silently continue if the dividers table doesn't exist yet
+                if (dividerError) {
+                    console.warn('⚠️ Could not load dividers (table may not exist yet):', dividerError.message);
+                    dividers = [];
+                } else {
+                    dividers = dividerData || [];
                 }
 
-                habits = habitData || [];
-                console.log(`✅ Loaded ${habits.length} habits`);
-
-                // Fetch completions
+                // 3. Fetch completions
                 const { data: compData, error: compError } = await supabaseClient
                     .from('habit_completions')
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .gte('completion_date', startOfMonth)
                     .lte('completion_date', endOfMonth);
-
-                if (compError) {
-                    console.error('Completions loading error:', compError);
-                    throw compError;
-                }
+                if (compError) throw compError;
 
                 completions = {};
                 (compData || []).forEach(c => {
-                    const d = new Date(c.completion_date);
-                    const day = d.getDate();
+                    const day = new Date(c.completion_date).getDate();
                     completions[`${c.habit_id}-${day}`] = true;
                 });
-                console.log(`✅ Loaded ${Object.keys(completions).length} completions`);
 
-                // Clear pending changes when loading fresh data
                 pendingChanges = {};
                 updateSaveButtonState();
-
                 renderTable();
-            } catch (error) {
-                console.error('❌ Load habits error:', error);
-                alert('Failed to load habits: ' + error.message);
+            } catch (e) {
+                console.error('Load habits error:', e);
+                alert('Failed to load habits: ' + e.message);
             }
         }
 
+        // ─── Completion Toggle ─────────────────────────────────────────────────────
         async function toggleCell(habitId, day) {
             try {
                 const key = `${habitId}-${day}`;
-                const currentState = completions[key] || false;
-                const newState = !currentState;
-                
-                // Update UI state immediately (temporary)
-                if (newState) {
-                    completions[key] = true;
-                } else {
-                    delete completions[key];
-                }
-                
-                // Track this change as pending
-                if (newState) {
-                    pendingChanges[key] = 'add';
-                } else {
-                    pendingChanges[key] = 'remove';
-                }
-                
-                // Re-render table to show updated state
+                const newState = !(completions[key] || false);
+                if (newState) { completions[key] = true; pendingChanges[key] = 'add'; }
+                else          { delete completions[key]; pendingChanges[key] = 'remove'; }
                 renderTable();
-                
-                // Update save button state
                 updateSaveButtonState();
-            } catch (error) {
-                console.error('Toggle cell error:', error);
-                alert('Failed to update completion: ' + error.message);
-            }
+            } catch (e) { alert('Failed to update completion: ' + e.message); }
         }
 
         function selectRow(row) {
@@ -917,18 +1007,31 @@
             row.classList.add('selected');
         }
 
+        // ─── Habit Modal ───────────────────────────────────────────────────────────
         function openHabitModal(habitId = null) {
             editingHabitId = habitId;
-            const modal = document.getElementById('habitModal');
-            const input = document.getElementById('habitName');
+            const modal  = document.getElementById('habitModal');
+            const input  = document.getElementById('habitName');
+            const select = document.getElementById('habitDivider');
+
+            // Populate section dropdown (NEW)
+            select.innerHTML = '<option value="">— No Section (Ungrouped) —</option>';
+            dividers.sort((a, b) => a.position - b.position).forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.title;
+                select.appendChild(opt);
+            });
 
             if (habitId) {
                 const habit = habits.find(h => h.id === habitId);
                 document.getElementById('modalTitle').textContent = 'Edit Habit';
                 input.value = habit.name;
+                select.value = habit.divider_id || '';    // Pre-select current section
             } else {
                 document.getElementById('modalTitle').textContent = 'Add Habit';
-                input.value = '';
+                input.value   = '';
+                select.value  = '';
             }
 
             modal.classList.add('active');
@@ -942,610 +1045,650 @@
 
         async function saveHabit() {
             try {
-                const name = document.getElementById('habitName').value.trim();
-                if (!name) {
-                    alert('Please enter a habit name');
-                    return;
-                }
+                const name      = document.getElementById('habitName').value.trim();
+                const dividerId = document.getElementById('habitDivider').value || null;
+
+                if (!name) { alert('Please enter a habit name'); return; }
 
                 if (editingHabitId) {
                     const { error } = await supabaseClient
                         .from('habits')
-                        .update({ name })
+                        .update({ name, divider_id: dividerId })     // ← Save divider_id
                         .eq('id', editingHabitId)
                         .eq('user_id', currentUser.id);
-
                     if (error) throw error;
                 } else {
-                    // When creating, set position to the end
-                    const maxPosition = habits.length > 0 
-                        ? Math.max(...habits.map(h => h.position !== null ? h.position : 0)) 
+                    const maxPos = habits.length > 0
+                        ? Math.max(...habits.map(h => h.position !== null ? h.position : 0))
                         : -1;
-
                     const { error } = await supabaseClient
                         .from('habits')
-                        .insert({ 
-                            name, 
-                            user_id: currentUser.id,
-                            position: maxPosition + 1
-                        });
-
+                        .insert({ name, user_id: currentUser.id, position: maxPos + 1, divider_id: dividerId });
                     if (error) throw error;
                 }
 
                 closeHabitModal();
                 await loadHabits();
-            } catch (error) {
-                console.error('Save habit error:', error);
-                alert('Failed to save habit: ' + error.message);
-            }
+            } catch (e) { alert('Failed to save habit: ' + e.message); }
         }
 
         async function deleteHabit(habitId) {
+            if (!confirm('Delete this habit?')) return;
             try {
-                if (!confirm('Delete this habit?')) return;
-
                 const { error } = await supabaseClient
-                    .from('habits')
-                    .delete()
-                    .eq('id', habitId)
-                    .eq('user_id', currentUser.id);
+                    .from('habits').delete()
+                    .eq('id', habitId).eq('user_id', currentUser.id);
+                if (error) throw error;
+                await loadHabits();
+            } catch (e) { alert('Failed to delete habit: ' + e.message); }
+        }
 
+        // ─── Divider / Section CRUD (NEW) ──────────────────────────────────────────
+
+        function openDividerModal(dividerId = null) {
+            editingDividerId = dividerId;
+            const modal = document.getElementById('dividerModal');
+            const input = document.getElementById('dividerTitle');
+
+            if (dividerId) {
+                const div = dividers.find(d => d.id === dividerId);
+                document.getElementById('dividerModalTitle').textContent = 'Edit Section';
+                input.value = div ? div.title : '';
+            } else {
+                document.getElementById('dividerModalTitle').textContent = 'Add Section';
+                input.value = '';
+            }
+
+            modal.classList.add('active');
+            input.focus();
+        }
+
+        function closeDividerModal() {
+            document.getElementById('dividerModal').classList.remove('active');
+            editingDividerId = null;
+        }
+
+        async function saveDivider() {
+            try {
+                const title = document.getElementById('dividerTitle').value.trim();
+                if (!title) { alert('Please enter a section title'); return; }
+
+                if (editingDividerId) {
+                    // Update existing divider
+                    const { error } = await supabaseClient
+                        .from('dividers')
+                        .update({ title })
+                        .eq('id', editingDividerId)
+                        .eq('user_id', currentUser.id);
+                    if (error) throw error;
+                } else {
+                    // Create new divider at end
+                    const maxPos = dividers.length > 0
+                        ? Math.max(...dividers.map(d => d.position !== null ? d.position : 0))
+                        : -1;
+                    const { error } = await supabaseClient
+                        .from('dividers')
+                        .insert({ title, user_id: currentUser.id, position: maxPos + 1 });
+                    if (error) throw error;
+                }
+
+                closeDividerModal();
+                await loadHabits();
+            } catch (e) { alert('Failed to save section: ' + e.message); }
+        }
+
+        async function deleteDivider(dividerId) {
+            const div = dividers.find(d => d.id === dividerId);
+            const divName = div ? `"${div.title}"` : 'this section';
+            const habitsInSection = habits.filter(h => h.divider_id === dividerId);
+            
+            let confirmMsg = `Delete section ${divName}?`;
+            if (habitsInSection.length > 0) {
+                confirmMsg += `\n\nThe ${habitsInSection.length} habit(s) inside will be moved to "Ungrouped".`;
+            }
+            
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                // Move habits in this section to ungrouped
+                if (habitsInSection.length > 0) {
+                    const { error: habitError } = await supabaseClient
+                        .from('habits')
+                        .update({ divider_id: null })
+                        .eq('divider_id', dividerId)
+                        .eq('user_id', currentUser.id);
+                    if (habitError) throw habitError;
+                }
+
+                // Delete the divider
+                const { error } = await supabaseClient
+                    .from('dividers')
+                    .delete()
+                    .eq('id', dividerId)
+                    .eq('user_id', currentUser.id);
                 if (error) throw error;
 
                 await loadHabits();
-            } catch (error) {
-                console.error('Delete habit error:', error);
-                alert('Failed to delete habit: ' + error.message);
-            }
+            } catch (e) { alert('Failed to delete section: ' + e.message); }
         }
 
+        // ─── Position Updates ──────────────────────────────────────────────────────
         async function updateHabitPositions(habitIds) {
             try {
-                console.log('🔄 Updating positions...', habitIds);
-                
-                // Update each habit's position individually
-                // This ensures we only update the position column, not the entire row
-                const updatePromises = habitIds.map((habitId, index) => 
-                    supabaseClient
-                        .from('habits')
-                        .update({ position: index })
-                        .eq('id', habitId)
-                        .eq('user_id', currentUser.id)
+                const updates = habitIds.map((id, index) =>
+                    supabaseClient.from('habits').update({ position: index })
+                        .eq('id', id).eq('user_id', currentUser.id)
                 );
-
-                const results = await Promise.all(updatePromises);
-                
-                // Check if any updates failed
+                const results = await Promise.all(updates);
                 const errors = results.filter(r => r.error);
-                if (errors.length > 0) {
-                    console.error('Position update errors:', errors);
-                    throw errors[0].error;
-                }
-                
-                console.log('✅ Positions updated successfully');
-            } catch (error) {
-                console.error('❌ Update positions error:', error);
-                alert('Failed to update order: ' + error.message);
-                // Reload habits to restore correct order
+                if (errors.length > 0) throw errors[0].error;
+            } catch (e) { console.error('Update positions error:', e); await loadHabits(); }
+        }
+
+        // NEW: Unified position updater for drag-and-drop with divider support
+        async function updateAllPositions(habitUpdates, dividerUpdates) {
+            try {
+                const promises = [];
+
+                // Update habit positions + divider_id
+                habitUpdates.forEach(({ id, position, divider_id }) => {
+                    promises.push(
+                        supabaseClient.from('habits')
+                            .update({ position, divider_id: divider_id || null })
+                            .eq('id', id).eq('user_id', currentUser.id)
+                    );
+                });
+
+                // Update divider positions
+                dividerUpdates.forEach(({ id, position }) => {
+                    promises.push(
+                        supabaseClient.from('dividers')
+                            .update({ position })
+                            .eq('id', id).eq('user_id', currentUser.id)
+                    );
+                });
+
+                const results = await Promise.all(promises);
+                const errors  = results.filter(r => r.error);
+                if (errors.length > 0) throw errors[0].error;
+
+                console.log('✅ All positions updated');
+            } catch (e) {
+                console.error('updateAllPositions error:', e);
+                alert('Failed to update order: ' + e.message);
                 await loadHabits();
             }
         }
 
-        // NEW: Select and highlight a date column
+        // ─── Column Selection ──────────────────────────────────────────────────────
         function selectColumn(day) {
             selectedColumn = day;
-            
-            // Remove all existing column highlights
-            document.querySelectorAll('.active-column').forEach(el => {
-                el.classList.remove('active-column');
-            });
-            
-            // Add highlight to selected column
-            // Highlight day header
-            const dayHeader = document.querySelector(`th.day-col[data-day="${day}"]`);
-            if (dayHeader) dayHeader.classList.add('active-column');
-            
-            // Highlight global checkbox cell
-            const globalCell = document.querySelector(`th.global-checkbox-cell[data-day="${day}"]`);
-            if (globalCell) globalCell.classList.add('active-column');
-            
-            // Highlight all cells in the column
-            document.querySelectorAll(`td[data-day="${day}"]`).forEach(td => {
-                td.classList.add('active-column');
-            });
+            document.querySelectorAll('.active-column').forEach(el => el.classList.remove('active-column'));
+            const hdr = document.querySelector(`th.day-col[data-day="${day}"]`);
+            if (hdr) hdr.classList.add('active-column');
+            const gcell = document.querySelector(`th.global-checkbox-cell[data-day="${day}"]`);
+            if (gcell) gcell.classList.add('active-column');
+            document.querySelectorAll(`td[data-day="${day}"]`).forEach(td => td.classList.add('active-column'));
         }
 
-        // NEW: Toggle all checkboxes in a column (without saving immediately)
         function toggleColumnCheckboxes(day) {
             try {
-                const globalCheckbox = document.querySelector(`.global-checkbox[data-day="${day}"]`);
-                const shouldCheck = globalCheckbox.checked;
-                
-                // Select and highlight the column
+                const globalCb = document.querySelector(`.global-checkbox[data-day="${day}"]`);
+                const shouldCheck = globalCb.checked;
                 selectColumn(day);
-                
-                // Get all checkbox inputs in this column
-                const columnCells = document.querySelectorAll(`td[data-day="${day}"]`);
-                
-                columnCells.forEach(td => {
-                    const checkbox = td.querySelector('input[type="checkbox"]:not(:disabled)');
-                    if (!checkbox) return;
-                    
+                document.querySelectorAll(`td[data-day="${day}"]`).forEach(td => {
+                    const cb = td.querySelector('input[type="checkbox"]:not(:disabled)');
+                    if (!cb) return;
                     const habitRow = td.closest('tr');
-                    const habitId = habitRow?.dataset.habitId;
+                    const habitId  = habitRow?.dataset.habitId;
                     if (!habitId) return;
-                    
                     const key = `${habitId}-${day}`;
-                    const currentState = completions[key] || false;
-                    
-                    // Only update if state needs to change
-                    if (currentState !== shouldCheck) {
-                        checkbox.checked = shouldCheck;
-                        
-                        // Update UI state immediately (temporary)
-                        if (shouldCheck) {
-                            completions[key] = true;
-                            pendingChanges[key] = 'add';
-                        } else {
-                            delete completions[key];
-                            pendingChanges[key] = 'remove';
-                        }
+                    if ((completions[key] || false) !== shouldCheck) {
+                        cb.checked = shouldCheck;
+                        if (shouldCheck) { completions[key] = true; pendingChanges[key] = 'add'; }
+                        else             { delete completions[key]; pendingChanges[key] = 'remove'; }
                     }
                 });
-                
-                // Re-render table to update stats
                 renderTable();
-                
-                // Update save button state
                 updateSaveButtonState();
-            } catch (error) {
-                console.error('Toggle column error:', error);
-                alert('Failed to update column: ' + error.message);
-            }
+            } catch (e) { alert('Failed to update column: ' + e.message); }
         }
 
-        // NEW: Update global checkbox states based on individual checkboxes
         function updateGlobalCheckboxStates() {
             for (let d = 1; d <= daysInMonth; d++) {
-                const globalCheckbox = document.querySelector(`.global-checkbox[data-day="${d}"]`);
-                if (!globalCheckbox) continue;
-                
-                // Get all checkboxes in this column (excluding disabled ones)
-                const columnCells = document.querySelectorAll(`td[data-day="${d}"]`);
-                const checkboxes = Array.from(columnCells)
+                const gcb = document.querySelector(`.global-checkbox[data-day="${d}"]`);
+                if (!gcb) continue;
+                const cbs = Array.from(document.querySelectorAll(`td[data-day="${d}"]`))
                     .map(td => td.querySelector('input[type="checkbox"]:not(:disabled)'))
-                    .filter(cb => cb !== null);
-                
-                if (checkboxes.length === 0) {
-                    globalCheckbox.checked = false;
-                    globalCheckbox.indeterminate = false;
-                    continue;
-                }
-                
-                const checkedCount = checkboxes.filter(cb => cb.checked).length;
-                
-                if (checkedCount === 0) {
-                    globalCheckbox.checked = false;
-                    globalCheckbox.indeterminate = false;
-                } else if (checkedCount === checkboxes.length) {
-                    globalCheckbox.checked = true;
-                    globalCheckbox.indeterminate = false;
-                } else {
-                    globalCheckbox.checked = false;
-                    globalCheckbox.indeterminate = true;
-                }
+                    .filter(Boolean);
+                if (cbs.length === 0) { gcb.checked = false; gcb.indeterminate = false; continue; }
+                const checked = cbs.filter(cb => cb.checked).length;
+                if      (checked === 0)         { gcb.checked = false; gcb.indeterminate = false; }
+                else if (checked === cbs.length) { gcb.checked = true;  gcb.indeterminate = false; }
+                else                             { gcb.checked = false; gcb.indeterminate = true; }
             }
         }
 
-        // NEW: Update Save button state based on pending changes
+        // ─── Save / Discard ────────────────────────────────────────────────────────
         function updateSaveButtonState() {
-            const changeCount = Object.keys(pendingChanges).length;
-            const saveBtn = document.getElementById('saveBtn');
+            const count      = Object.keys(pendingChanges).length;
+            const saveBtn    = document.getElementById('saveBtn');
             const discardBtn = document.getElementById('discardBtn');
-            const saveSection = document.getElementById('saveSection');
-            const changesIndicator = document.getElementById('changesIndicator');
-            const changesCount = document.getElementById('changesCount');
-            
-            if (changeCount > 0) {
-                saveBtn.disabled = false;
-                saveBtn.classList.add('has-changes');
+            const section    = document.getElementById('saveSection');
+            const indicator  = document.getElementById('changesIndicator');
+            const countEl    = document.getElementById('changesCount');
+
+            if (count > 0) {
+                saveBtn.disabled = false; saveBtn.classList.add('has-changes');
                 discardBtn.disabled = false;
-                saveSection.classList.add('has-changes');
-                changesIndicator.style.display = 'flex';
-                changesCount.textContent = `${changeCount} unsaved change${changeCount > 1 ? 's' : ''}`;
+                section.classList.add('has-changes');
+                indicator.style.display = 'flex';
+                countEl.textContent = `${count} unsaved change${count > 1 ? 's' : ''}`;
             } else {
-                saveBtn.disabled = true;
-                saveBtn.classList.remove('has-changes');
+                saveBtn.disabled = true; saveBtn.classList.remove('has-changes');
                 discardBtn.disabled = true;
-                saveSection.classList.remove('has-changes');
-                changesIndicator.style.display = 'none';
+                section.classList.remove('has-changes');
+                indicator.style.display = 'none';
             }
         }
 
-        // NEW: Save all pending changes to database
         async function saveAllChanges() {
-            if (Object.keys(pendingChanges).length === 0) {
-                return;
-            }
-            
-            const saveBtn = document.getElementById('saveBtn');
-            const originalText = saveBtn.textContent;
-            
+            if (Object.keys(pendingChanges).length === 0) return;
+            const saveBtn  = document.getElementById('saveBtn');
+            const origText = saveBtn.textContent;
             try {
                 saveBtn.textContent = 'Saving...';
-                saveBtn.disabled = true;
-                
-                const insertions = [];
-                const deletions = [];
-                
-                console.log('📝 Pending changes:', pendingChanges);
-                
-                // Prepare all changes
+                saveBtn.disabled    = true;
+
+                const insertions = [], deletions = [];
+
                 for (const [key, action] of Object.entries(pendingChanges)) {
-                    console.log('Processing key:', key);
-                    
-                    // Key format: "habitId-day" where habitId is UUID (contains dashes!)
-                    // So we need to get the last part after the last dash
-                    const lastDashIndex = key.lastIndexOf('-');
-                    const habitId = key.substring(0, lastDashIndex);
-                    const dayStr = key.substring(lastDashIndex + 1);
-                    
-                    console.log('Parsed - habitId:', habitId, 'dayStr:', dayStr);
-                    
-                    const day = parseInt(dayStr, 10);
-                    
-                    console.log('Day as number:', day);
-                    
-                    if (isNaN(day)) {
-                        console.error('❌ Invalid day parsed from key:', key);
-                        throw new Error(`Invalid day in key: ${key}. Parsed day: ${dayStr}`);
-                    }
-                    
-                    // Create date properly with padding
-                    const year = selectedYear;
-                    const month = selectedMonth + 1; // Month is 0-indexed, need 1-indexed for ISO
-                    const dayPadded = day.toString().padStart(2, '0');
-                    const monthPadded = month.toString().padStart(2, '0');
-                    const dateStr = `${year}-${monthPadded}-${dayPadded}`;
-                    
-                    console.log('Created date string:', dateStr);
-                    
-                    if (action === 'add') {
-                        insertions.push({
-                            habit_id: habitId,
-                            user_id: currentUser.id,
-                            completion_date: dateStr
-                        });
-                    } else if (action === 'remove') {
-                        deletions.push({ habitId, dateStr });
-                    }
+                    const lastDash = key.lastIndexOf('-');
+                    const habitId  = key.substring(0, lastDash);
+                    const day      = parseInt(key.substring(lastDash + 1), 10);
+                    if (isNaN(day)) throw new Error(`Invalid day in key: ${key}`);
+                    const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+
+                    if (action === 'add')    insertions.push({ habit_id: habitId, user_id: currentUser.id, completion_date: dateStr });
+                    else if (action === 'remove') deletions.push({ habitId, dateStr });
                 }
-                
-                console.log('📤 Insertions:', insertions);
-                console.log('🗑️ Deletions:', deletions);
-                
-                // Execute all insertions
+
                 if (insertions.length > 0) {
-                    const { error } = await supabaseClient
-                        .from('habit_completions')
-                        .insert(insertions);
-                    
-                    // Ignore duplicate key errors (23505)
-                    if (error && error.code !== '23505') {
-                        throw error;
-                    }
+                    const { error } = await supabaseClient.from('habit_completions').insert(insertions);
+                    if (error && error.code !== '23505') throw error;
                 }
-                
-                // Execute all deletions
+
                 for (const { habitId, dateStr } of deletions) {
-                    const { error } = await supabaseClient
-                        .from('habit_completions')
-                        .delete()
-                        .eq('habit_id', habitId)
-                        .eq('completion_date', dateStr)
-                        .eq('user_id', currentUser.id);
-                    
-                    if (error) {
-                        console.error('Delete error:', error);
-                        // Continue with other deletions even if one fails
-                    }
+                    await supabaseClient.from('habit_completions').delete()
+                        .eq('habit_id', habitId).eq('completion_date', dateStr).eq('user_id', currentUser.id);
                 }
-                
-                // Clear pending changes
+
                 pendingChanges = {};
-                
-                // Update save button state
                 updateSaveButtonState();
-                
-                // Show success feedback
                 saveBtn.textContent = '✓ Saved!';
                 saveBtn.style.background = '#10b981';
-                
-                setTimeout(() => {
-                    saveBtn.textContent = originalText;
-                    saveBtn.style.background = '';
-                }, 2000);
-                
-                console.log('✅ All changes saved successfully');
-            } catch (error) {
-                console.error('❌ Save error:', error);
-                alert('Failed to save changes: ' + error.message);
-                saveBtn.textContent = originalText;
-                saveBtn.disabled = false;
-                
-                // Reload to sync with database
+                setTimeout(() => { saveBtn.textContent = origText; saveBtn.style.background = ''; }, 2000);
+            } catch (e) {
+                console.error('Save error:', e);
+                alert('Failed to save: ' + e.message);
+                saveBtn.textContent = origText;
+                saveBtn.disabled    = false;
                 await loadHabits();
             }
         }
 
-        // NEW: Discard all pending changes
         async function discardChanges() {
-            if (!confirm('Discard all unsaved changes?')) {
-                return;
-            }
-            
-            // Clear pending changes
+            if (!confirm('Discard all unsaved changes?')) return;
             pendingChanges = {};
-            
-            // Reload from database to reset UI state
             await loadHabits();
-            
-            // Update save button state
             updateSaveButtonState();
-            
-            console.log('🔄 Changes discarded, reloaded from database');
         }
 
+        // ─── Collapse / Expand a section ───────────────────────────────────────────
+        // Toggles visibility without a full re-render — just flips CSS classes in-place.
+        function toggleSection(dividerId) {
+            const isNowCollapsed = !collapsedSections.has(dividerId);
+
+            if (isNowCollapsed) {
+                collapsedSections.add(dividerId);
+            } else {
+                collapsedSections.delete(dividerId);
+            }
+
+            // Update the divider header row
+            const dividerRow = document.querySelector(`tr[data-divider-id="${dividerId}"]`);
+            if (dividerRow) {
+                dividerRow.classList.toggle('is-collapsed', isNowCollapsed);
+                const btn = dividerRow.querySelector('.divider-collapse-btn');
+                if (btn) {
+                    btn.classList.toggle('collapsed', isNowCollapsed);
+                    btn.title = isNowCollapsed ? 'Expand section' : 'Collapse section';
+                }
+            }
+
+            // Show/hide all habit rows belonging to this section
+            document.querySelectorAll(`tr[data-section-id="${dividerId}"]`).forEach(row => {
+                row.classList.toggle('habit-row-hidden', isNowCollapsed);
+            });
+        }
+
+        // ─── RENDER TABLE ──────────────────────────────────────────────────────────
+        // Builds the full table including interleaved divider rows.
         function renderTable() {
             try {
-                console.log('🎨 Rendering table...');
-                const headerRow = document.getElementById('headerRow');
-                const globalCheckboxRow = document.getElementById('globalCheckboxRow');
-                
-                // Safety check: ensure header rows exist
-                if (!headerRow || !globalCheckboxRow) {
-                    console.error('❌ Header rows not found - DOM may not be ready');
-                    return;
-                }
-                
-                // Remove all existing day column headers and global checkboxes
-                const existingDayHeaders = headerRow.querySelectorAll('th.day-col');
-                existingDayHeaders.forEach(header => header.remove());
-                
-                const existingGlobalCheckboxes = globalCheckboxRow.querySelectorAll('th.global-checkbox-cell');
-                existingGlobalCheckboxes.forEach(cell => cell.remove());
-                
-                // Find the Actions column and insert before it
+                const headerRow       = document.getElementById('headerRow');
+                const globalRow       = document.getElementById('globalCheckboxRow');
+                const dailyBody       = document.getElementById('dailyBody');
+                if (!headerRow || !globalRow || !dailyBody) return;
+
+                // Rebuild day headers
+                headerRow.querySelectorAll('th.day-col').forEach(el => el.remove());
+                globalRow.querySelectorAll('th.global-checkbox-cell').forEach(el => el.remove());
+
                 const actionsHeader = headerRow.querySelector('.actions-col');
-                const actionsGlobalCell = globalCheckboxRow.querySelector('.actions-col');
-                if (!actionsHeader || !actionsGlobalCell) {
-                    console.error('❌ Actions header not found');
-                    return;
-                }
-                
-                // Add day headers and global checkboxes in correct order (1 to 31)
+                const actionsGlobal = globalRow.querySelector('.actions-col');
+                if (!actionsHeader || !actionsGlobal) return;
+
+                const totalCols = 3 + daysInMonth + 1;  // habit + done + % + days + actions
+
                 for (let d = 1; d <= daysInMonth; d++) {
-                    // Add day header
                     const th = document.createElement('th');
                     th.className = 'day-col';
                     th.textContent = d;
                     th.dataset.day = d;
-                    
-                    // Apply column highlighting if this is the selected column
-                    if (selectedColumn === d) {
-                        th.classList.add('active-column');
-                    }
-                    
+                    if (selectedColumn === d) th.classList.add('active-column');
                     headerRow.insertBefore(th, actionsHeader);
-                    
-                    // Add global checkbox for this day
-                    const globalTh = document.createElement('th');
-                    globalTh.className = 'global-checkbox-cell';
-                    globalTh.dataset.day = d;
-                    
-                    // Apply column highlighting if this is the selected column
-                    if (selectedColumn === d) {
-                        globalTh.classList.add('active-column');
-                    }
-                    
-                    const globalCheckbox = document.createElement('input');
-                    globalCheckbox.type = 'checkbox';
-                    globalCheckbox.className = 'global-checkbox';
-                    globalCheckbox.dataset.day = d;
-                    globalCheckbox.onclick = () => toggleColumnCheckboxes(d);
-                    
-                    globalTh.appendChild(globalCheckbox);
-                    globalCheckboxRow.insertBefore(globalTh, actionsGlobalCell);
+
+                    const gth = document.createElement('th');
+                    gth.className = 'global-checkbox-cell';
+                    gth.dataset.day = d;
+                    if (selectedColumn === d) gth.classList.add('active-column');
+                    const gcb = document.createElement('input');
+                    gcb.type = 'checkbox'; gcb.className = 'global-checkbox'; gcb.dataset.day = d;
+                    gcb.onclick = () => toggleColumnCheckboxes(d);
+                    gth.appendChild(gcb);
+                    globalRow.insertBefore(gth, actionsGlobal);
                 }
 
-                const dailyBody = document.getElementById('dailyBody');
-                if (!dailyBody) {
-                    console.error('❌ Daily body not found');
-                    return;
-                }
                 dailyBody.innerHTML = '';
 
-                habits.forEach(habit => {
-                    const habitCreatedDate = new Date(habit.created_at);
-                    const habitCreatedDay = habitCreatedDate.getDate();
-                    const habitMonth = habitCreatedDate.getMonth();
-                    const habitYear = habitCreatedDate.getFullYear();
-                    
-                    const isHabitCreatedThisMonth = habitYear === selectedYear && habitMonth === selectedMonth;
-                    const startDay = isHabitCreatedThisMonth ? habitCreatedDay : 1;
+                // ── Build ordered render list ────────────────────────────────────
+                // Structure: ungrouped habits first, then each divider with its habits.
+                const renderList = [];
 
-                    let done = 0;
-                    for (let d = startDay; d <= daysInMonth; d++) {
-                        if (completions[`${habit.id}-${d}`]) done++;
-                    }
-                    
-                    const validDays = daysInMonth - startDay + 1;
-                    const pct = validDays > 0 ? Math.round((done / validDays) * 100) : 0;
+                // Ungrouped habits (no divider_id)
+                const ungrouped = habits
+                    .filter(h => !h.divider_id)
+                    .sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+                ungrouped.forEach(h => renderList.push({ type: 'habit', data: h }));
 
-                    const tr = document.createElement('tr');
-                    tr.className = 'draggable-row';
-                    tr.dataset.habitId = habit.id;
-                    
-                    // Only show drag handle if SortableJS is available
-                    const dragHandle = typeof Sortable !== 'undefined' 
-                        ? '<span class="drag-handle">☰</span>' 
-                        : '';
-                    
-                    tr.innerHTML = `
-					<td class="habit-col">
-						${dragHandle}
-						<div class="habit-name-scroll" title="${habit.name}">
-							${habit.name}
-						</div>
-					</td>
-					<td class="stats-col">${done}</td>
-					<td class="stats-col">${pct}%</td>
-					`;
-                    
-                    tr.addEventListener('click', (e) => {
-                        if (!e.target.classList.contains('drag-handle')) {
-                            selectRow(tr);
-                        }
-                    });
-
-                    for (let d = 1; d <= daysInMonth; d++) {
-                        const td = document.createElement('td');
-                        td.dataset.day = d;
-                        
-                        // Apply column highlighting if this is the selected column
-                        if (selectedColumn === d) {
-                            td.classList.add('active-column');
-                        }
-                        
-                        if (isHabitCreatedThisMonth && d < habitCreatedDay) {
-                            td.innerHTML = '<input type="checkbox" disabled>';
-                        } else {
-                            const checked = completions[`${habit.id}-${d}`] ? 'checked' : '';
-                            td.innerHTML = `<input type="checkbox" ${checked} onchange="toggleCell('${habit.id}', ${d})" onclick="selectColumn(${d})">`;
-                        }
-                        tr.appendChild(td);
-                    }
-
-                    const actionsTd = document.createElement('td');
-                    actionsTd.className = 'actions-col';
-                    actionsTd.innerHTML = `
-                        <button class="action-btn edit-btn" onclick="openHabitModal('${habit.id}')">Edit</button>
-                        <button class="action-btn delete-btn" onclick="deleteHabit('${habit.id}')">Del</button>
-                    `;
-                    tr.appendChild(actionsTd);
-
-                    dailyBody.appendChild(tr);
+                // Sorted dividers + their habits
+                const sortedDividers = [...dividers].sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+                sortedDividers.forEach(div => {
+                    renderList.push({ type: 'divider', data: div });
+                    const divHabits = habits
+                        .filter(h => h.divider_id === div.id)
+                        .sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+                    divHabits.forEach(h => renderList.push({ type: 'habit', data: h, indented: true }));
                 });
 
-                // Update global checkbox states after rendering
+                // ── Render each item ─────────────────────────────────────────────
+                renderList.forEach(item => {
+                    if (item.type === 'divider') {
+                        renderDividerRow(item.data, dailyBody, totalCols);
+                    } else {
+                        renderHabitRow(item.data, dailyBody, item.indented);
+                    }
+                });
+
                 updateGlobalCheckboxStates();
-
-                // Initialize drag-and-drop if SortableJS is available
-                if (typeof Sortable !== 'undefined') {
-                    initializeDragAndDrop();
-                }
-
+                if (typeof Sortable !== 'undefined') initializeDragAndDrop();
                 updateAnalytics();
-                console.log('✅ Table rendered successfully');
-            } catch (error) {
-                console.error('❌ Render table error:', error);
-                alert('Failed to render table: ' + error.message);
+            } catch (e) {
+                console.error('Render table error:', e);
             }
         }
 
+        // ── Renders a single divider/section row ─────────────────────────────────
+        function renderDividerRow(divider, tbody, totalCols) {
+            const isCollapsed = collapsedSections.has(divider.id);
+            const habitCount  = habits.filter(h => h.divider_id === divider.id).length;
+
+            const tr = document.createElement('tr');
+            tr.className = 'divider-row' + (isCollapsed ? ' is-collapsed' : '');
+            tr.dataset.dividerId = divider.id;
+
+            const td = document.createElement('td');
+            td.colSpan = totalCols;
+
+            const dragHandle = typeof Sortable !== 'undefined'
+                ? '<span class="divider-drag-handle drag-handle">☰</span>'
+                : '';
+
+            td.innerHTML = `
+                <div class="divider-row-inner">
+                    ${dragHandle}
+                    <div class="divider-title-area" onclick="toggleSection('${divider.id}')">
+                        <button class="divider-collapse-btn ${isCollapsed ? 'collapsed' : ''}" title="${isCollapsed ? 'Expand' : 'Collapse'} section">▾</button>
+                        <span class="divider-title-text">${escapeHtml(divider.title)}</span>
+                        <span class="divider-count-badge">${habitCount} habit${habitCount !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="divider-actions-group">
+                        <button class="divider-action-btn divider-edit-btn"
+                            onclick="openDividerModal('${divider.id}')">Edit</button>
+                        <button class="divider-action-btn divider-delete-btn"
+                            onclick="deleteDivider('${divider.id}')">Delete</button>
+                    </div>
+                </div>`;
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+        }
+
+        // ── Renders a single habit row ────────────────────────────────────────────
+        function renderHabitRow(habit, tbody, indented = false) {
+            const createdDate  = new Date(habit.created_at);
+            const createdDay   = createdDate.getDate();
+            const createdMonth = createdDate.getMonth();
+            const createdYear  = createdDate.getFullYear();
+            const isThisMonth  = createdYear === selectedYear && createdMonth === selectedMonth;
+            const startDay     = isThisMonth ? createdDay : 1;
+
+            let done = 0;
+            for (let d = startDay; d <= daysInMonth; d++) {
+                if (completions[`${habit.id}-${d}`]) done++;
+            }
+            const validDays = daysInMonth - startDay + 1;
+            const pct = validDays > 0 ? Math.round((done / validDays) * 100) : 0;
+
+            const isHidden = habit.divider_id && collapsedSections.has(habit.divider_id);
+
+            const tr = document.createElement('tr');
+            tr.className = [
+                'draggable-row',
+                indented ? 'habit-indented' : '',
+                isHidden ? 'habit-row-hidden' : ''
+            ].filter(Boolean).join(' ');
+            tr.dataset.habitId = habit.id;
+            if (habit.divider_id) tr.dataset.sectionId = habit.divider_id; // for fast show/hide
+
+            const dragHandle = typeof Sortable !== 'undefined'
+                ? '<span class="drag-handle">☰</span>'
+                : '';
+
+            tr.innerHTML = `
+                <td class="habit-col">
+                    ${dragHandle}
+                    <div class="habit-name-scroll" title="${escapeHtml(habit.name)}">
+                        ${escapeHtml(habit.name)}
+                    </div>
+                </td>
+                <td class="stats-col">${done}</td>
+                <td class="stats-col">${pct}%</td>`;
+
+            tr.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('drag-handle')) selectRow(tr);
+            });
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const td = document.createElement('td');
+                td.dataset.day = d;
+                if (selectedColumn === d) td.classList.add('active-column');
+                if (isThisMonth && d < createdDay) {
+                    td.innerHTML = '<input type="checkbox" disabled>';
+                } else {
+                    const checked = completions[`${habit.id}-${d}`] ? 'checked' : '';
+                    td.innerHTML = `<input type="checkbox" ${checked}
+                        onchange="toggleCell('${habit.id}', ${d})"
+                        onclick="selectColumn(${d})">`;
+                }
+                tr.appendChild(td);
+            }
+
+            const actionsTd = document.createElement('td');
+            actionsTd.className = 'actions-col';
+            actionsTd.innerHTML = `
+                <button class="action-btn edit-btn" onclick="openHabitModal('${habit.id}')">Edit</button>
+                <button class="action-btn delete-btn" onclick="deleteHabit('${habit.id}')">Del</button>`;
+            tr.appendChild(actionsTd);
+            tbody.appendChild(tr);
+        }
+
+        // ─── Drag and Drop ─────────────────────────────────────────────────────────
         function initializeDragAndDrop() {
             try {
                 const dailyBody = document.getElementById('dailyBody');
-                
-                // Destroy existing instance if it exists
-                if (sortableInstance) {
-                    sortableInstance.destroy();
-                }
+                if (sortableInstance) sortableInstance.destroy();
 
-                // Create new Sortable instance
                 sortableInstance = new Sortable(dailyBody, {
                     animation: 150,
                     handle: '.drag-handle',
+                    // ⚠️ KEY FIX: Do NOT set `draggable` to '.draggable-row'.
+                    // That was preventing habits from being dragged across divider rows
+                    // because SortableJS treated divider rows as invisible walls.
+                    // With no filter, ALL <tr> children participate in sorting.
                     ghostClass: 'sortable-ghost',
                     dragClass: 'sortable-drag',
+
+                    // Highlight the divider row when a habit is dragged over it
+                    onMove: function(evt) {
+                        // Clear previous highlights
+                        dailyBody.querySelectorAll('.drag-over-divider')
+                            .forEach(el => el.classList.remove('drag-over-divider'));
+
+                        // If dragging a habit over/past a divider row, highlight the divider
+                        const related = evt.related;
+                        if (related && related.dataset.dividerId) {
+                            related.classList.add('drag-over-divider');
+                        }
+                        return true; // allow the move
+                    },
+
                     onEnd: async function(evt) {
+                        // Clean up any leftover highlights
+                        dailyBody.querySelectorAll('.drag-over-divider')
+                            .forEach(el => el.classList.remove('drag-over-divider'));
+
                         try {
-                            // Get the new order of habit IDs
-                            const rows = dailyBody.querySelectorAll('.draggable-row');
-                            const newOrder = Array.from(rows).map(row => row.dataset.habitId);
-                            
-                            // Update local habits array to reflect new order
-                            const reorderedHabits = newOrder.map(id => 
-                                habits.find(h => h.id === id)
-                            );
-                            habits = reorderedHabits;
-                            
-                            // Update positions in Supabase
-                            await updateHabitPositions(newOrder);
-                        } catch (error) {
-                            console.error('Drag end error:', error);
+                            // Walk ALL rows in current DOM order.
+                            // currentDividerId tracks which section habits "belong to" —
+                            // it updates every time we pass a divider row.
+                            const allRows = Array.from(dailyBody.children);
+                            let currentDividerId = null;
+                            let dividerPosition  = 0;
+
+                            const habitUpdates   = [];
+                            const dividerUpdates = [];
+                            const posCounters    = {}; // section key → counter
+
+                            allRows.forEach(row => {
+                                if (row.dataset.dividerId) {
+                                    dividerUpdates.push({ id: row.dataset.dividerId, position: dividerPosition++ });
+                                    currentDividerId = row.dataset.dividerId;
+                                } else if (row.dataset.habitId) {
+                                    const posKey = currentDividerId || '__ungrouped__';
+                                    if (!(posKey in posCounters)) posCounters[posKey] = 0;
+                                    habitUpdates.push({
+                                        id:         row.dataset.habitId,
+                                        divider_id: currentDividerId,
+                                        position:   posCounters[posKey]++
+                                    });
+                                }
+                            });
+
+                            console.log('🔀 New order — habits:', habitUpdates, '| dividers:', dividerUpdates);
+
+                            // Update local state immediately (optimistic UI)
+                            habitUpdates.forEach(u => {
+                                const h = habits.find(h => h.id === u.id);
+                                if (h) { h.position = u.position; h.divider_id = u.divider_id; }
+                            });
+                            dividerUpdates.forEach(u => {
+                                const d = dividers.find(d => d.id === u.id);
+                                if (d) d.position = u.position;
+                            });
+
+                            // Persist to Supabase
+                            await updateAllPositions(habitUpdates, dividerUpdates);
+                        } catch (e) {
+                            console.error('Drag end error:', e);
+                            // Re-render from local state if something went wrong
+                            renderTable();
                         }
                     }
                 });
-                console.log('✅ Drag-and-drop initialized');
-            } catch (error) {
-                console.error('⚠️ Drag-and-drop initialization failed:', error);
-                // Don't block the app if drag-and-drop fails
+
+                console.log('✅ Drag-and-drop initialized (divider-aware)');
+            } catch (e) {
+                console.warn('Drag-and-drop init failed:', e);
             }
         }
 
+        // ─── Analytics ─────────────────────────────────────────────────────────────
         function updateAnalytics() {
             try {
                 const stats = habits.map(habit => {
-                    const habitCreatedDate = new Date(habit.created_at);
-                    const habitCreatedDay = habitCreatedDate.getDate();
-                    const habitMonth = habitCreatedDate.getMonth();
-                    const habitYear = habitCreatedDate.getFullYear();
-                    
-                    const isHabitCreatedThisMonth = habitYear === selectedYear && habitMonth === selectedMonth;
-                    const startDay = isHabitCreatedThisMonth ? habitCreatedDay : 1;
-                    const validDays = daysInMonth - startDay + 1;
+                    const createdDate  = new Date(habit.created_at);
+                    const createdDay   = createdDate.getDate();
+                    const isThisMonth  = createdDate.getFullYear() === selectedYear && createdDate.getMonth() === selectedMonth;
+                    const startDay     = isThisMonth ? createdDay : 1;
+                    const validDays    = daysInMonth - startDay + 1;
 
                     let count = 0;
                     for (let d = startDay; d <= daysInMonth; d++) {
                         if (completions[`${habit.id}-${d}`]) count++;
                     }
-                    
                     const pct = validDays > 0 ? Math.round((count / validDays) * 100) : 0;
                     return { name: habit.name, count, pct, validDays };
                 });
 
                 if (stats.length === 0) {
-                    document.getElementById('overallVal').textContent = '0%';
-                    document.getElementById('bestName').textContent = 'No habits yet';
-                    document.getElementById('worstName').textContent = 'Add habits to start';
+                    document.getElementById('overallVal').textContent  = '0%';
+                    document.getElementById('bestName').textContent     = 'No habits yet';
+                    document.getElementById('worstName').textContent    = 'Add habits to start';
                     return;
                 }
 
-                const totalDone = stats.reduce((sum, s) => sum + s.count, 0);
-                const totalPossible = stats.reduce((sum, s) => sum + s.validDays, 0);
-                const overallPct = totalPossible > 0 ? ((totalDone / totalPossible) * 100).toFixed(1) : 0;
+                const totalDone     = stats.reduce((s, x) => s + x.count, 0);
+                const totalPossible = stats.reduce((s, x) => s + x.validDays, 0);
+                const overallPct    = totalPossible > 0 ? ((totalDone / totalPossible) * 100).toFixed(1) : 0;
 
                 document.getElementById('overallVal').textContent = overallPct + '%';
 
-                const sortedStats = [...stats].sort((a, b) => b.pct - a.pct);
-                const best = sortedStats[0];
-                const worst = sortedStats[sortedStats.length - 1];
+                const sorted = [...stats].sort((a, b) => b.pct - a.pct);
+                const best   = sorted[0];
+                const worst  = sorted[sorted.length - 1];
 
-                document.getElementById('bestName').textContent = best.name;
+                document.getElementById('bestName').textContent  = best.name;
                 document.getElementById('bestScore').textContent = `${best.pct}% complete`;
-                document.getElementById('worstName').textContent = worst.name;
+                document.getElementById('worstName').textContent  = worst.name;
                 document.getElementById('worstScore').textContent = `${worst.pct}% complete`;
 
-                // Line Chart - Daily Performance
-                const dailyPerformance = Array.from({length: daysInMonth}, (_, i) => {
-                    const day = i + 1;
+                // Line chart
+                const dailyPerf = Array.from({ length: daysInMonth }, (_, i) => {
+                    const day      = i + 1;
                     const dayHabits = habits.filter(h => {
-                        const createdDay = new Date(h.created_at).getDate();
-                        const createdMonth = new Date(h.created_at).getMonth();
-                        const createdYear = new Date(h.created_at).getFullYear();
-                        return !(createdYear === selectedYear && createdMonth === selectedMonth && day < createdDay);
+                        const cd = new Date(h.created_at);
+                        return !(cd.getFullYear() === selectedYear && cd.getMonth() === selectedMonth && day < cd.getDate());
                     });
                     const completed = dayHabits.filter(h => completions[`${h.id}-${day}`]).length;
                     return dayHabits.length > 0 ? (completed / dayHabits.length) * 100 : 0;
@@ -1555,118 +1698,60 @@
                 charts.lineChart = new Chart(document.getElementById('lineChart'), {
                     type: 'line',
                     data: {
-                        labels: Array.from({length: daysInMonth}, (_, i) => i + 1),
-                        datasets: [{
-                            data: dailyPerformance,
-                            borderColor: '#4f46e5',
-                            tension: 0.4,
-                            fill: true,
-                            backgroundColor: 'rgba(79, 70, 229, 0.05)',
-                            pointRadius: 2
-                        }]
+                        labels: Array.from({ length: daysInMonth }, (_, i) => i + 1),
+                        datasets: [{ data: dailyPerf, borderColor: '#4f46e5', tension: 0.4,
+                            fill: true, backgroundColor: 'rgba(79,70,229,0.05)', pointRadius: 2 }]
                     },
-                    options: {
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { min: 0, max: 100, ticks: { callback: v => v + '%' } },
-                            x: { grid: { display: false } }
-                        }
-                    }
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
+                        scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } },
+                                  x: { grid: { display: false } } } }
                 });
 
-                // Pie Chart - Overall Completion
                 if (charts.pieChart) charts.pieChart.destroy();
                 charts.pieChart = new Chart(document.getElementById('pieChart'), {
                     type: 'doughnut',
-                    data: {
-                        labels: ['Done', 'Left'],
-                        datasets: [{
-                            data: [totalDone, totalPossible - totalDone],
-                            backgroundColor: ['#10b981', '#f1f5f9'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        cutout: '70%',
-                        plugins: { legend: { position: 'bottom' } }
-                    }
+                    data: { labels: ['Done','Left'], datasets: [{
+                        data: [totalDone, totalPossible - totalDone],
+                        backgroundColor: ['#10b981','#f1f5f9'], borderWidth: 0 }] },
+                    options: { maintainAspectRatio: false, cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } } }
                 });
 
-                // Best Habits Chart
-                const top5Best = sortedStats.slice(0, 5);
+                const top5Best = sorted.slice(0, 5);
                 if (charts.bestChart) charts.bestChart.destroy();
                 charts.bestChart = new Chart(document.getElementById('bestChart'), {
                     type: 'bar',
-                    data: {
-                        labels: top5Best.map(s => s.name.length > 15 ? s.name.substring(0, 15) + '...' : s.name),
-                        datasets: [{
-                            data: top5Best.map(s => s.pct),
-                            backgroundColor: '#10b981',
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
-                        }
-                    }
+                    data: { labels: top5Best.map(s => s.name.length > 15 ? s.name.substring(0,15)+'…' : s.name),
+                        datasets: [{ data: top5Best.map(s => s.pct), backgroundColor: '#10b981', borderRadius: 4 }] },
+                    options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } },
+                        scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } } } }
                 });
 
-                // Worst Habits Chart
-                const top5Worst = [...sortedStats].reverse().slice(0, 5);
+                const top5Worst = [...sorted].reverse().slice(0, 5);
                 if (charts.worstChart) charts.worstChart.destroy();
                 charts.worstChart = new Chart(document.getElementById('worstChart'), {
                     type: 'bar',
-                    data: {
-                        labels: top5Worst.map(s => s.name.length > 15 ? s.name.substring(0, 15) + '...' : s.name),
-                        datasets: [{
-                            data: top5Worst.map(s => s.pct),
-                            backgroundColor: '#ef4444',
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
-                        }
-                    }
+                    data: { labels: top5Worst.map(s => s.name.length > 15 ? s.name.substring(0,15)+'…' : s.name),
+                        datasets: [{ data: top5Worst.map(s => s.pct), backgroundColor: '#ef4444', borderRadius: 4 }] },
+                    options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } },
+                        scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } } } }
                 });
-            } catch (error) {
-                console.error('Analytics update error:', error);
-                // Don't block the app if analytics fail
-            }
+            } catch (e) { console.error('Analytics error:', e); }
         }
 
-        // Check auth on load
+        // ─── Utility ───────────────────────────────────────────────────────────────
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ─── Boot ──────────────────────────────────────────────────────────────────
         (async () => {
             try {
-                console.log('🔐 Checking authentication...');
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
-                
-                if (error) {
-                    console.error('Auth check error:', error);
-                    return;
-                }
-                
-                if (session) {
-                    console.log('✅ User authenticated');
-                    currentUser = session.user;
-                    await initApp();
-                } else {
-                    console.log('ℹ️ No active session - showing login');
-                }
-            } catch (error) {
-                console.error('❌ Auth initialization error:', error);
-                alert('Authentication check failed: ' + error.message);
-            }
+                if (error) { console.error('Auth check error:', error); return; }
+                if (session) { currentUser = session.user; await initApp(); }
+            } catch (e) { console.error('Auth init error:', e); }
         })();
     </script>
 </body>
