@@ -121,6 +121,32 @@
         .chart-container { height: 160px; margin-bottom: 20px; }
         .chart-label { font-size: 12px; font-weight: 700; color: var(--text-sub); text-align: center; display: block; margin-bottom: 5px; }
 
+        /* Sidebar section divider */
+        .sidebar-section-divider {
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            margin: 16px 0 14px;
+        }
+        .sidebar-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-sub);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sidebar-section-label::before {
+            content: '';
+            display: inline-block;
+            width: 3px;
+            height: 11px;
+            background: var(--secondary);
+            border-radius: 2px;
+        }
+
         /* Month Navigation */
         .month-nav {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -507,135 +533,359 @@
         .modal-btn-secondary { background: #e2e8f0; color: var(--text-main); }
 
         /* =============================================
-           DIVIDER / SECTION STYLES (NEW)
+           DIVIDER / SECTION STYLES
            ============================================= */
 
-        /* Divider row in the table */
+        /* ── Banner row ─────────────────────────────────────── */
         .divider-row td {
-            background: linear-gradient(135deg, #f0f4ff 0%, #f8f0ff 100%);
-            border-top: 2px solid #c7d2fe;
-            border-bottom: 2px solid #c7d2fe;
             padding: 0 !important;
-            position: sticky;
-            left: 0;
-            z-index: 6;
+            border: none !important;
+            background: transparent;
         }
 
-        .divider-row-inner {
+        .divider-banner {
             display: flex;
             align-items: center;
-            padding: 6px 10px;
-            gap: 8px;
+            gap: 10px;
+            padding: 9px 14px;
+            /* indigo → purple → amber shimmer at right edge */
+            background: linear-gradient(
+                105deg,
+                #3730a3 0%,
+                #6d28d9 45%,
+                #7c3aed 70%,
+                #92400e 95%,
+                #b45309 100%
+            );
+            border-radius: 7px;
+            margin: 6px 4px;
+            box-shadow:
+                0 2px 8px rgba(109, 40, 217, 0.35),
+                inset 0 1px 0 rgba(255,255,255,0.12);
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+            user-select: none;
         }
 
+        /* Subtle sheen overlay — gives the "shimmer" feel */
+        .divider-banner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(255,255,255,0.10) 0%,
+                rgba(255,255,255,0.00) 60%
+            );
+            pointer-events: none;
+        }
+
+        /* Gold dust sparkle at the right edge */
+        .divider-banner::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 80px;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(251, 191, 36, 0.18) 60%,
+                rgba(251, 191, 36, 0.32) 100%
+            );
+            pointer-events: none;
+        }
+
+        /* Drag handle */
         .divider-drag-handle {
             cursor: grab;
-            color: #a5b4fc;
-            font-size: 12px;
-            user-select: none;
+            color: rgba(255,255,255,0.50);
+            font-size: 11px;
             flex-shrink: 0;
+            z-index: 1;
+            transition: color 0.15s;
         }
+        .divider-drag-handle:hover { color: rgba(255,255,255,0.85); }
         .divider-drag-handle:active { cursor: grabbing; }
 
-        .divider-icon {
+        /* Collapse button */
+        .divider-collapse-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
             font-size: 13px;
+            color: rgba(255,255,255,0.70);
+            transition: transform 0.2s ease, color 0.15s;
+            line-height: 1;
             flex-shrink: 0;
+            z-index: 1;
+        }
+        .divider-collapse-btn:hover { color: #fbbf24; }
+        .divider-collapse-btn.collapsed { transform: rotate(-90deg); }
+
+        /* Centred title area — takes all remaining space */
+        .divider-title-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            z-index: 1;
         }
 
         .divider-title-text {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: 0.05em;
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
-            flex: 1;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.25);
         }
 
-        .divider-actions-group {
-            display: flex;
-            gap: 4px;
-            flex-shrink: 0;
-        }
-
-        .divider-action-btn {
-            padding: 2px 7px;
-            border: none;
-            border-radius: 4px;
-            font-size: 9px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.15s;
-        }
-        .divider-edit-btn {
-            background: #e0e7ff;
-            color: #4338ca;
-        }
-        .divider-edit-btn:hover { background: #c7d2fe; }
-        .divider-delete-btn {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-        .divider-delete-btn:hover { background: #fecaca; }
-
-        /* Divider modal color picker */
-        .color-picker-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .color-swatch {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 3px solid transparent;
-            transition: all 0.15s;
-        }
-        .color-swatch.selected {
-            border-color: var(--text-main);
-            transform: scale(1.15);
-        }
-
-        /* Habit row indentation under a divider */
-        .habit-indented .habit-name-scroll {
-            margin-left: 8px;
-        }
-
-        /* Collapsed section — hide its habit rows */
-        .habit-row-hidden { display: none !important; }
-
-        /* Collapse toggle arrow */
-        .divider-collapse-btn {
-            background: none; border: none; cursor: pointer;
-            padding: 0 4px; font-size: 13px; color: #a5b4fc;
-            transition: transform 0.2s ease; line-height: 1;
-            flex-shrink: 0; user-select: none;
-        }
-        .divider-collapse-btn.collapsed { transform: rotate(-90deg); }
-
-        /* Habit count badge shown only when collapsed */
+        /* Habit count badge — only shows when collapsed */
         .divider-count-badge {
             display: none;
-            background: #e0e7ff; color: var(--primary);
-            font-size: 10px; font-weight: 700;
-            padding: 2px 7px; border-radius: 99px; margin-left: 4px;
+            background: rgba(251, 191, 36, 0.25);
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.45);
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 99px;
+            letter-spacing: 0.04em;
         }
         .divider-row.is-collapsed .divider-count-badge { display: inline-block; }
 
-        /* Clickable title area */
-        .divider-title-area {
-            display: flex; align-items: center; flex: 1;
-            cursor: pointer; gap: 4px;
+        /* Actions — right-aligned, z-index above the ::after glow */
+        .divider-actions-group {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+            z-index: 1;
         }
-        .divider-title-area:hover .divider-title-text { color: #4338ca; }
+        .divider-action-btn {
+            padding: 3px 9px;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 5px;
+            font-size: 9px;
+            cursor: pointer;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            transition: all 0.15s;
+            background: rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.90);
+        }
+        .divider-action-btn:hover {
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.50);
+            color: #ffffff;
+        }
+        .divider-delete-btn:hover {
+            background: rgba(239, 68, 68, 0.45);
+            border-color: rgba(239, 68, 68, 0.70);
+        }
 
-        /* Drag-over highlight on divider rows */
-        .divider-row.drag-over-divider td {
-            background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%) !important;
-            border-top: 2px solid var(--primary) !important;
-            border-bottom: 2px solid var(--primary) !important;
+        /* Drag-over highlight */
+        .divider-row.drag-over-divider .divider-banner {
+            box-shadow:
+                0 0 0 2px #fbbf24,
+                0 4px 16px rgba(109, 40, 217, 0.5);
         }
+
+        /* Habit row indentation under a divider */
+        .habit-indented .habit-name-scroll { margin-left: 8px; }
+
+        /* ═══════════════════════════════════════════════
+           WEEKLY TRACKER
+           ═══════════════════════════════════════════════ */
+        .weekly-section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            border: 1px solid #f1f5f9;
+            max-width: 1200px;
+        }
+
+        /* Week navigation pill — matches month-nav style */
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 3px 5px;
+        }
+        .week-nav-btn {
+            padding: 4px 10px;
+            background: none;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-sub);
+            transition: all 0.15s;
+        }
+        .week-nav-btn:hover { background: #e2e8f0; color: var(--text-main); }
+        .week-nav-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            padding: 0 6px;
+            min-width: 160px;
+            text-align: center;
+        }
+        .week-today-btn {
+            padding: 4px 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .week-today-btn:hover { background: #4338ca; }
+
+        /* History button */
+        .week-history-btn {
+            padding: 6px 12px;
+            background: #f1f5f9;
+            color: var(--text-main);
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .week-history-btn:hover { background: #e2e8f0; }
+
+        /* Weekly table — mirrors daily habits table exactly */
+        .weekly-table-container { overflow-x: auto; margin-top: 10px; }
+        .weekly-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        .weekly-table th {
+            background: #f8fafc;
+            padding: 6px 8px;
+            text-align: center;
+            font-weight: 700;
+            border: 1px solid #e2e8f0;
+        }
+        .weekly-table th.wt-task-col  { text-align: left; }
+        .weekly-table th.wt-done-col  { width: 80px; }
+        .weekly-table th.wt-act-col   { width: 100px; }
+
+        .weekly-table td {
+            padding: 4px 6px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .weekly-table td.wt-task-col {
+            text-align: left;
+            font-weight: 600;
+            background: #fafafa;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            padding: 5px 8px;
+            white-space: nowrap;
+        }
+        .weekly-table td.wt-act-col {
+            background: #fafafa;
+            white-space: nowrap;
+        }
+        .weekly-table tbody tr:hover { background: #f8fafc; }
+        .weekly-table tbody tr.wt-draggable { cursor: move; }
+        .wt-sortable-ghost { opacity: 0.4; background: #e0e7ff !important; }
+
+        /* The single checkbox cell */
+        .wt-cb-cell { background: #f0fdf4; }
+        .wt-cb-cell input[type="checkbox"] {
+            width: 16px; height: 16px;
+            cursor: pointer;
+            accent-color: var(--success);
+        }
+        .wt-cb-cell input[type="checkbox"]:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Read-only past/future week indicator */
+        .wt-done-badge {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700;
+        }
+        .wt-done-badge.done   { background: #d1fae5; color: #065f46; }
+        .wt-done-badge.missed { background: #fee2e2; color: #991b1b; }
+        .wt-done-badge.future { background: #f1f5f9; color: var(--text-sub); }
+
+        /* Current week highlight on header */
+        .wt-current-week-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--success);
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Empty state */
+        .wt-empty {
+            text-align: center; padding: 32px;
+            color: var(--text-sub); font-size: 13px;
+        }
+        .wt-empty-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+
+        /* ── History Modal ── */
+        .history-modal-content {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            max-width: 780px;
+            width: 95%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .history-modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 18px;
+        }
+        .history-modal-header h2 { font-size: 18px; }
+        .history-close-btn {
+            background: #f1f5f9; border: none; border-radius: 6px;
+            padding: 6px 12px; cursor: pointer; font-size: 12px; font-weight: 600;
+        }
+        .history-table {
+            width: 100%; border-collapse: collapse; font-size: 11px;
+        }
+        .history-table th {
+            background: #f8fafc; padding: 6px 8px; text-align: center;
+            font-weight: 700; border: 1px solid #e2e8f0; white-space: nowrap;
+        }
+        .history-table th.ht-week-col { text-align: left; min-width: 120px; }
+        .history-table td {
+            padding: 5px 6px; text-align: center; border: 1px solid #e2e8f0;
+        }
+        .history-table td.ht-week-col {
+            text-align: left; font-weight: 600; background: #fafafa;
+            position: sticky; left: 0; z-index: 5;
+        }
+        .history-table tr:hover td { background: #f8fafc; }
+        .ht-check { color: #10b981; font-size: 14px; }
+        .ht-cross  { color: #d1d5db; font-size: 14px; }
+        .history-empty { text-align: center; padding: 24px; color: var(--text-sub); font-size: 13px; }
+
+
+
+        /* Collapsed section — hide its habit rows */
+        .habit-row-hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -718,6 +968,31 @@
                 <span class="chart-label">Bottom 5 Habits</span>
                 <canvas id="worstChart"></canvas>
             </div>
+
+            <!-- ── Weekly Tasks Analytics ───────────────────── -->
+            <hr class="sidebar-section-divider">
+            <div class="sidebar-section-label">Weekly Tasks</div>
+
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <div class="stat-card" style="flex:1; margin-bottom:0;">
+                    <h3>Done This Month</h3>
+                    <span class="val" id="wtDoneVal" style="color:var(--success);">—</span>
+                </div>
+                <div class="stat-card" style="flex:1; margin-bottom:0;">
+                    <h3>Missed This Month</h3>
+                    <span class="val" id="wtMissedVal" style="color:var(--danger);">—</span>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <span class="chart-label">This Month (Done vs Missed)</span>
+                <canvas id="wtDonutChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <span class="chart-label">Monthly Trend (last 4 months)</span>
+                <canvas id="wtBarChart"></canvas>
+            </div>
         </div>
 
         <!-- Main Content -->
@@ -769,6 +1044,38 @@
                     </table>
                 </div>
             </div>
+
+            <!-- ═══════════════════════════════════════
+                 WEEKLY TASKS TRACKER
+                 ═══════════════════════════════════════ -->
+            <div class="weekly-section">
+                <div class="section-title">
+                    <span>Weekly Tasks</span>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <!-- Week navigation -->
+                        <div class="week-nav">
+                            <button class="week-nav-btn" onclick="changeWeek(-1)">←</button>
+                            <span class="week-nav-label" id="weekLabel">—</span>
+                            <button class="week-nav-btn" onclick="changeWeek(1)">→</button>
+                            <button class="week-today-btn" onclick="goToCurrentWeek()">Today</button>
+                        </div>
+                        <button class="week-history-btn" onclick="openHistoryModal()">📋 History</button>
+                        <button class="add-btn" onclick="openWeeklyTaskModal()">+ Add Task</button>
+                    </div>
+                </div>
+                <div class="weekly-table-container">
+                    <table class="weekly-table">
+                        <thead>
+                            <tr>
+                                <th class="wt-task-col">Task</th>
+                                <th class="wt-done-col" id="weekStatusHeader">This Week</th>
+                                <th class="wt-act-col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="weeklyBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -808,6 +1115,36 @@
         </div>
     </div>
 
+    <!-- =============================================
+         HISTORY MODAL
+         ============================================= -->
+    <div class="modal" id="historyModal">
+        <div class="history-modal-content">
+            <div class="history-modal-header">
+                <h2>📋 Weekly Task History</h2>
+                <button class="history-close-btn" onclick="closeHistoryModal()">✕ Close</button>
+            </div>
+            <div id="historyContent">
+                <p class="history-empty">Loading history…</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         WEEKLY TASK MODAL
+         ============================================= -->
+    <div class="modal" id="weeklyTaskModal">
+        <div class="modal-content">
+            <h2 id="weeklyTaskModalTitle">Add Weekly Task</h2>
+            <label class="modal-label">Task Name</label>
+            <input type="text" id="weeklyTaskName" class="modal-input" placeholder="e.g. Review weekly goals, Clean workspace…">
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeWeeklyTaskModal()">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveWeeklyTask()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ─── Supabase Config ───────────────────────────────────────────────────────
         const SUPABASE_URL = 'https://ngxzaywoelxukmrvbhux.supabase.co';
@@ -842,13 +1179,20 @@
         let pendingChanges   = {};
         let collapsedSections = new Set(); // IDs of dividers whose habits are hidden
 
+        // ── Weekly tracker state ─────────────────────────────────────────────────
+        let weeklyTasks        = [];
+        let weeklyCompletions  = {};   // key: taskId → true (for the currently viewed week)
+        let weekStart          = getMonday(new Date()); // Monday of the visible week
+        let editingWeeklyTaskId = null;
+
         // Date state
         let currentDate  = new Date();
         let selectedMonth = currentDate.getMonth();
         let selectedYear  = currentDate.getFullYear();
         let daysInMonth   = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-        const charts = { lineChart: null, pieChart: null, bestChart: null, worstChart: null };
+        const charts = { lineChart: null, pieChart: null, bestChart: null, worstChart: null,
+                         wtDonutChart: null, wtBarChart: null };
 
         // ─── Auth ──────────────────────────────────────────────────────────────────
         function switchToSignup() {
@@ -903,6 +1247,7 @@
                 document.getElementById('userName').textContent = currentUser.email;
                 updateMonthDisplay();
                 await loadHabits();
+                await loadWeeklyTasks(); // ← Weekly tracker bootstrap
             } catch (e) { alert('Failed to initialize app: ' + e.message); }
         }
 
@@ -1462,22 +1807,23 @@
             td.colSpan = totalCols;
 
             const dragHandle = typeof Sortable !== 'undefined'
-                ? '<span class="divider-drag-handle drag-handle">☰</span>'
+                ? '<span class="divider-drag-handle drag-handle">⠿</span>'
                 : '';
 
             td.innerHTML = `
-                <div class="divider-row-inner">
+                <div class="divider-banner">
                     ${dragHandle}
                     <div class="divider-title-area" onclick="toggleSection('${divider.id}')">
-                        <button class="divider-collapse-btn ${isCollapsed ? 'collapsed' : ''}" title="${isCollapsed ? 'Expand' : 'Collapse'} section">▾</button>
+                        <button class="divider-collapse-btn ${isCollapsed ? 'collapsed' : ''}"
+                            title="${isCollapsed ? 'Expand' : 'Collapse'} section">▾</button>
                         <span class="divider-title-text">${escapeHtml(divider.title)}</span>
                         <span class="divider-count-badge">${habitCount} habit${habitCount !== 1 ? 's' : ''}</span>
                     </div>
                     <div class="divider-actions-group">
                         <button class="divider-action-btn divider-edit-btn"
-                            onclick="openDividerModal('${divider.id}')">Edit</button>
+                            onclick="event.stopPropagation(); openDividerModal('${divider.id}')">Edit</button>
                         <button class="divider-action-btn divider-delete-btn"
-                            onclick="deleteDivider('${divider.id}')">Delete</button>
+                            onclick="event.stopPropagation(); deleteDivider('${divider.id}')">Delete</button>
                     </div>
                 </div>`;
             tr.appendChild(td);
@@ -1737,6 +2083,529 @@
                         scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } } } }
                 });
             } catch (e) { console.error('Analytics error:', e); }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // WEEKLY ANALYTICS  (sidebar charts)
+        // ═══════════════════════════════════════════════════════════════════
+        // Called after every loadWeeklyTasks(). Fetches all completions for
+        // the last 4 calendar months, then derives done/missed counts per month.
+        //
+        // Key definition:
+        //   A "week slot" for month M = any week whose Monday falls in month M.
+        //   Total possible completions for month M = weekSlots(M) × taskCount.
+        //   Done = rows in weekly_task_completions whose completion_date Monday ∈ month M.
+
+        async function updateWeeklyAnalytics() {
+            try {
+                // Build the 4 month windows we care about (current month + 3 prior)
+                const now = new Date();
+                const months = Array.from({ length: 4 }, (_, i) => {
+                    const d = new Date(now.getFullYear(), now.getMonth() - (3 - i), 1);
+                    return { year: d.getFullYear(), month: d.getMonth() };
+                }); // oldest → newest
+
+                // Date range: start of oldest month → end of current month
+                const rangeStart = new Date(months[0].year, months[0].month, 1);
+                const rangeEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+                // Fetch all completions in this range
+                const { data: compData, error: compErr } = await supabaseClient
+                    .from('weekly_task_completions')
+                    .select('task_id, completion_date')
+                    .eq('user_id', currentUser.id)
+                    .gte('completion_date', toDateStr(rangeStart))
+                    .lte('completion_date', toDateStr(rangeEnd));
+
+                if (compErr) {
+                    console.warn('Weekly analytics fetch failed:', compErr.message);
+                    return;
+                }
+
+                const taskCount = weeklyTasks.length;
+
+                // Helper: how many Mondays fall in a given year/month?
+                function mondaysInMonth(year, month) {
+                    const first = new Date(year, month, 1);
+                    const last  = new Date(year, month + 1, 0);
+                    let count = 0;
+                    for (let d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
+                        if (d.getDay() === 1) count++; // Monday
+                    }
+                    return count;
+                }
+
+                // Helper: which year/month does a completion_date Monday belong to?
+                function monthKey(dateStr) {
+                    const d = new Date(dateStr + 'T00:00:00');
+                    return `${d.getFullYear()}-${d.getMonth()}`;
+                }
+
+                // Count completions per month
+                const doneCounts = {}; // "YYYY-M" → count
+                (compData || []).forEach(c => {
+                    const key = monthKey(c.completion_date);
+                    doneCounts[key] = (doneCounts[key] || 0) + 1;
+                });
+
+                // Build per-month stats
+                const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                const monthStats = months.map(({ year, month }) => {
+                    const slots    = mondaysInMonth(year, month);
+                    const possible = slots * taskCount;
+                    const done     = doneCounts[`${year}-${month}`] || 0;
+                    const missed   = Math.max(0, possible - done);
+                    const pct      = possible > 0 ? Math.round((done / possible) * 100) : 0;
+                    return { label: MONTH_NAMES[month], done, missed, possible, pct };
+                });
+
+                // Current month (last in array)
+                const cur = monthStats[monthStats.length - 1];
+
+                // ── Stat cards ──────────────────────────────────────────────────
+                document.getElementById('wtDoneVal').textContent   = taskCount === 0 ? '—' : cur.done;
+                document.getElementById('wtMissedVal').textContent = taskCount === 0 ? '—' : cur.missed;
+
+                if (taskCount === 0) return; // no tasks → skip charts
+
+                // ── Donut: this month done vs missed ────────────────────────────
+                if (charts.wtDonutChart) charts.wtDonutChart.destroy();
+                charts.wtDonutChart = new Chart(
+                    document.getElementById('wtDonutChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Done', 'Missed'],
+                        datasets: [{
+                            data: [cur.done, Math.max(0, cur.missed)],
+                            backgroundColor: ['#10b981', '#fee2e2'],
+                            borderColor:     ['#059669', '#fca5a5'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { size: 10 } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => ` ${ctx.parsed} week slot${ctx.parsed !== 1 ? 's' : ''}`
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // ── Bar: last 4 months % completion ────────────────────────────
+                if (charts.wtBarChart) charts.wtBarChart.destroy();
+                charts.wtBarChart = new Chart(
+                    document.getElementById('wtBarChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: monthStats.map(m => m.label),
+                        datasets: [{
+                            label: '% Done',
+                            data:  monthStats.map(m => m.pct),
+                            backgroundColor: monthStats.map((m, i) =>
+                                i === monthStats.length - 1 ? '#8b5cf6' : '#c4b5fd'
+                            ),
+                            borderRadius: 4,
+                            barPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false },
+                            tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y}%` } }
+                        },
+                        scales: {
+                            y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 9 } } },
+                            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                        }
+                    }
+                });
+
+            } catch (e) {
+                console.error('updateWeeklyAnalytics error:', e);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // WEEKLY TRACKER FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════════
+
+        // Returns a new Date set to the Monday of the week containing `date`
+        function getMonday(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            const day = d.getDay(); // 0=Sun … 6=Sat
+            d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+            return d;
+        }
+
+        // "YYYY-MM-DD" string from a Date (local time, no UTC shift)
+        function toDateStr(date) {
+            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+        }
+
+        // Is the given weekStart the current real-world week?
+        function isCurrentWeek(ws) {
+            return toDateStr(ws) === toDateStr(getMonday(new Date()));
+        }
+
+        // Is the weekStart in the future?
+        function isFutureWeek(ws) {
+            return ws > getMonday(new Date());
+        }
+
+        // Week navigation
+        function changeWeek(delta) {
+            weekStart = new Date(weekStart);
+            weekStart.setDate(weekStart.getDate() + delta * 7);
+            loadWeeklyTasks();
+        }
+
+        function goToCurrentWeek() {
+            weekStart = getMonday(new Date());
+            loadWeeklyTasks();
+        }
+
+        // Update the "Mar 17 – Mar 23, 2026" label + column header
+        function updateWeekLabel() {
+            const sun = new Date(weekStart);
+            sun.setDate(sun.getDate() + 6);
+            const opts = { month: 'short', day: 'numeric' };
+            const start = weekStart.toLocaleDateString('en-US', opts);
+            const end   = sun.toLocaleDateString('en-US', { ...opts, year: 'numeric' });
+            document.getElementById('weekLabel').textContent = `${start} – ${end}`;
+
+            // Column header: "This Week ✦" for current, date range for past/future
+            const hdr = document.getElementById('weekStatusHeader');
+            if (hdr) {
+                if (isCurrentWeek(weekStart)) {
+                    hdr.innerHTML = '<span class="wt-current-week-label">✦ This Week</span>';
+                } else if (isFutureWeek(weekStart)) {
+                    hdr.textContent = 'Upcoming';
+                } else {
+                    hdr.textContent = `${start} – ${sun.toLocaleDateString('en-US', opts)}`;
+                }
+            }
+        }
+
+        // ── Load weekly data ──────────────────────────────────────────────────────
+        async function loadWeeklyTasks() {
+            try {
+                updateWeekLabel();
+                const weekStartStr = toDateStr(weekStart);
+
+                // Fetch task list (ordered)
+                const { data: taskData, error: taskErr } = await supabaseClient
+                    .from('weekly_tasks')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('position', { ascending: true, nullsFirst: false });
+
+                if (taskErr) {
+                    console.warn('⚠️ weekly_tasks table may not exist yet:', taskErr.message);
+                    weeklyTasks = [];
+                    renderWeeklyTable();
+                    return;
+                }
+                weeklyTasks = taskData || [];
+
+                // Fetch completions for this specific week only
+                // completion_date stores the Monday (week_start) of that week
+                const { data: compData, error: compErr } = await supabaseClient
+                    .from('weekly_task_completions')
+                    .select('task_id, completion_date')
+                    .eq('user_id', currentUser.id)
+                    .eq('completion_date', weekStartStr);
+
+                weeklyCompletions = {};
+                if (!compErr) {
+                    (compData || []).forEach(c => {
+                        weeklyCompletions[c.task_id] = true;
+                    });
+                }
+
+                renderWeeklyTable();
+                updateWeeklyAnalytics(); // ← sidebar charts
+            } catch (e) {
+                console.error('loadWeeklyTasks error:', e);
+            }
+        }
+
+        // ── Render the weekly table (3 columns: task | checkbox | actions) ─────────
+        function renderWeeklyTable() {
+            const body = document.getElementById('weeklyBody');
+            if (!body) return;
+            body.innerHTML = '';
+
+            const currentWeek = isCurrentWeek(weekStart);
+            const futureWeek  = isFutureWeek(weekStart);
+            const weekStartStr = toDateStr(weekStart);
+
+            if (weeklyTasks.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 3;
+                td.innerHTML = `<div class="wt-empty">
+                    <span class="wt-empty-icon">📋</span>
+                    No weekly tasks yet — click <strong>+ Add Task</strong> to add one.
+                </div>`;
+                tr.appendChild(td);
+                body.appendChild(tr);
+                return;
+            }
+
+            weeklyTasks.forEach(task => {
+                const done    = weeklyCompletions[task.id] || false;
+                const tr      = document.createElement('tr');
+                tr.className  = 'wt-draggable';
+                tr.dataset.taskId = task.id;
+
+                // Task name cell (with drag handle)
+                const tdName = document.createElement('td');
+                tdName.className = 'wt-task-col';
+                const dragHandle = typeof Sortable !== 'undefined'
+                    ? '<span class="drag-handle" style="margin-right:8px;color:var(--text-sub);">☰</span>'
+                    : '';
+                tdName.innerHTML = `${dragHandle}<span title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</span>`;
+                tr.appendChild(tdName);
+
+                // Status cell — checkbox for current week, badge for past/future
+                const tdDone = document.createElement('td');
+                tdDone.className = 'wt-cb-cell';
+
+                if (currentWeek) {
+                    // Editable checkbox
+                    const cb = document.createElement('input');
+                    cb.type     = 'checkbox';
+                    cb.checked  = done;
+                    cb.onchange = () => toggleWeeklyTask(task.id, weekStartStr, cb.checked);
+                    tdDone.appendChild(cb);
+                } else if (futureWeek) {
+                    tdDone.innerHTML = '<span class="wt-done-badge future">—</span>';
+                } else {
+                    // Past week: read-only ✓ / ✗
+                    tdDone.innerHTML = done
+                        ? '<span class="wt-done-badge done">✓ Done</span>'
+                        : '<span class="wt-done-badge missed">✗ Missed</span>';
+                }
+                tr.appendChild(tdDone);
+
+                // Actions cell (edit + delete — always visible)
+                const tdAct = document.createElement('td');
+                tdAct.className = 'wt-act-col';
+                tdAct.innerHTML = `
+                    <button class="action-btn edit-btn" onclick="openWeeklyTaskModal('${task.id}')">Edit</button>
+                    <button class="action-btn delete-btn" onclick="deleteWeeklyTask('${task.id}')">Del</button>`;
+                tr.appendChild(tdAct);
+
+                body.appendChild(tr);
+            });
+
+            // Init drag-and-drop on weekly table
+            initWeeklyDragAndDrop();
+        }
+
+        // ── Drag-and-drop for weekly tasks ────────────────────────────────────────
+        let weeklySortable = null;
+        function initWeeklyDragAndDrop() {
+            if (typeof Sortable === 'undefined') return;
+            const body = document.getElementById('weeklyBody');
+            if (!body || body.querySelector('.wt-empty')) return;
+            if (weeklySortable) weeklySortable.destroy();
+            weeklySortable = new Sortable(body, {
+                animation: 150,
+                handle: '.drag-handle',
+                ghostClass: 'wt-sortable-ghost',
+                onEnd: async function() {
+                    const rows = Array.from(body.children);
+                    const updates = rows.map((row, index) =>
+                        supabaseClient.from('weekly_tasks')
+                            .update({ position: index })
+                            .eq('id', row.dataset.taskId)
+                            .eq('user_id', currentUser.id)
+                    );
+                    const results = await Promise.all(updates);
+                    const errs = results.filter(r => r.error);
+                    if (errs.length) { console.error('Weekly reorder error:', errs[0].error); await loadWeeklyTasks(); }
+                    else {
+                        // Update local order
+                        const ordered = rows.map(r => weeklyTasks.find(t => t.id === r.dataset.taskId));
+                        weeklyTasks = ordered;
+                    }
+                }
+            });
+        }
+
+        // ── Toggle a weekly completion (auto-saves) ───────────────────────────────
+        async function toggleWeeklyTask(taskId, weekStartStr, newState) {
+            // Optimistic update
+            if (newState) weeklyCompletions[taskId] = true;
+            else          delete weeklyCompletions[taskId];
+            renderWeeklyTable();
+
+            try {
+                if (newState) {
+                    const { error } = await supabaseClient
+                        .from('weekly_task_completions')
+                        .insert({ task_id: taskId, user_id: currentUser.id, completion_date: weekStartStr });
+                    if (error && error.code !== '23505') throw error;
+                } else {
+                    const { error } = await supabaseClient
+                        .from('weekly_task_completions')
+                        .delete()
+                        .eq('task_id', taskId)
+                        .eq('completion_date', weekStartStr)
+                        .eq('user_id', currentUser.id);
+                    if (error) throw error;
+                }
+                updateWeeklyAnalytics(); // keep sidebar charts in sync
+            } catch (e) {
+                // Rollback on failure
+                if (newState) delete weeklyCompletions[taskId];
+                else          weeklyCompletions[taskId] = true;
+                renderWeeklyTable();
+                alert('Failed to save: ' + e.message);
+            }
+        }
+
+        // ── History modal ─────────────────────────────────────────────────────────
+        async function openHistoryModal() {
+            document.getElementById('historyModal').classList.add('active');
+            document.getElementById('historyContent').innerHTML =
+                '<p class="history-empty">Loading…</p>';
+
+            try {
+                // Fetch ALL completions for this user
+                const { data: allComps, error: compErr } = await supabaseClient
+                    .from('weekly_task_completions')
+                    .select('task_id, completion_date')
+                    .eq('user_id', currentUser.id)
+                    .order('completion_date', { ascending: false });
+
+                if (compErr) throw compErr;
+
+                // Fetch all tasks (need names)
+                const { data: allTasks, error: taskErr } = await supabaseClient
+                    .from('weekly_tasks')
+                    .select('id, name, position')
+                    .eq('user_id', currentUser.id)
+                    .order('position', { ascending: true, nullsFirst: false });
+
+                if (taskErr) throw taskErr;
+
+                if (!allComps || allComps.length === 0) {
+                    document.getElementById('historyContent').innerHTML =
+                        '<p class="history-empty">No completion history yet. Check off some tasks this week!</p>';
+                    return;
+                }
+
+                // Collect unique weeks (sorted newest first)
+                const weekSet = [...new Set(allComps.map(c => c.completion_date))].sort().reverse();
+
+                // Build completion lookup: taskId → Set of weekStartStr
+                const lookup = {};
+                allComps.forEach(c => {
+                    if (!lookup[c.task_id]) lookup[c.task_id] = new Set();
+                    lookup[c.task_id].add(c.completion_date);
+                });
+
+                // Build table
+                let html = '<div style="overflow-x:auto"><table class="history-table"><thead><tr>';
+                html += '<th class="ht-week-col">Week</th>';
+                (allTasks || []).forEach(t => {
+                    html += `<th title="${escapeHtml(t.name)}">${escapeHtml(t.name.length > 18 ? t.name.substring(0,17)+'…' : t.name)}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+
+                weekSet.forEach(ws => {
+                    const monday = new Date(ws + 'T00:00:00');
+                    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+                    const label  = `${monday.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${sunday.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+                    const isNow  = ws === toDateStr(getMonday(new Date()));
+
+                    html += `<tr><td class="ht-week-col">${label}${isNow ? ' <strong style="color:var(--success);font-size:9px;">NOW</strong>' : ''}</td>`;
+                    (allTasks || []).forEach(t => {
+                        const done = lookup[t.id] && lookup[t.id].has(ws);
+                        html += done
+                            ? '<td><span class="ht-check">✓</span></td>'
+                            : '<td><span class="ht-cross">—</span></td>';
+                    });
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table></div>';
+                document.getElementById('historyContent').innerHTML = html;
+
+            } catch (e) {
+                document.getElementById('historyContent').innerHTML =
+                    `<p class="history-empty">Failed to load history: ${e.message}</p>`;
+            }
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.remove('active');
+        }
+
+        // ── Weekly task CRUD ──────────────────────────────────────────────────────
+        function openWeeklyTaskModal(taskId = null) {
+            editingWeeklyTaskId = taskId;
+            const modal = document.getElementById('weeklyTaskModal');
+            const input = document.getElementById('weeklyTaskName');
+            document.getElementById('weeklyTaskModalTitle').textContent =
+                taskId ? 'Edit Weekly Task' : 'Add Weekly Task';
+            if (taskId) {
+                const task = weeklyTasks.find(t => t.id === taskId);
+                input.value = task ? task.name : '';
+            } else {
+                input.value = '';
+            }
+            modal.classList.add('active');
+            input.focus();
+        }
+
+        function closeWeeklyTaskModal() {
+            document.getElementById('weeklyTaskModal').classList.remove('active');
+            editingWeeklyTaskId = null;
+        }
+
+        async function saveWeeklyTask() {
+            try {
+                const name = document.getElementById('weeklyTaskName').value.trim();
+                if (!name) { alert('Please enter a task name'); return; }
+
+                if (editingWeeklyTaskId) {
+                    const { error } = await supabaseClient
+                        .from('weekly_tasks')
+                        .update({ name })
+                        .eq('id', editingWeeklyTaskId)
+                        .eq('user_id', currentUser.id);
+                    if (error) throw error;
+                } else {
+                    const maxPos = weeklyTasks.length > 0
+                        ? Math.max(...weeklyTasks.map(t => t.position ?? 0)) : -1;
+                    const { error } = await supabaseClient
+                        .from('weekly_tasks')
+                        .insert({ name, user_id: currentUser.id, position: maxPos + 1 });
+                    if (error) throw error;
+                }
+                closeWeeklyTaskModal();
+                await loadWeeklyTasks();
+            } catch (e) { alert('Failed to save task: ' + e.message); }
+        }
+
+        async function deleteWeeklyTask(taskId) {
+            if (!confirm('Delete this weekly task? All its history will be removed too.')) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('weekly_tasks').delete()
+                    .eq('id', taskId).eq('user_id', currentUser.id);
+                if (error) throw error;
+                await loadWeeklyTasks();
+            } catch (e) { alert('Failed to delete task: ' + e.message); }
         }
 
         // ─── Utility ───────────────────────────────────────────────────────────────
