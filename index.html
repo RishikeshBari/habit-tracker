@@ -76,6 +76,41 @@
             margin-bottom: 15px;
             font-size: 13px;
         }
+        .auth-success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            border: 1px solid #6ee7b7;
+        }
+        .forgot-link {
+            display: block;
+            text-align: right;
+            margin-top: -8px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .forgot-link:hover { text-decoration: underline; }
+        .auth-card .form-subtitle {
+            color: var(--text-sub);
+            font-size: 13px;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+        .password-strength {
+            font-size: 11px;
+            margin-top: -10px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .strength-weak   { color: #ef4444; }
+        .strength-fair   { color: #f59e0b; }
+        .strength-strong { color: #10b981; }
 
         /* Main App */
         .app-container { display: none; width: 100%; }
@@ -897,7 +932,9 @@
             <div id="authError"></div>
             <div id="loginForm">
                 <input type="email" id="loginEmail" class="auth-input" placeholder="Email">
-                <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
+                <input type="password" id="loginPassword" class="auth-input" placeholder="Password"
+                       onkeydown="if(event.key==='Enter') login()">
+                <a class="forgot-link" onclick="switchToForgotPassword()">Forgot Password?</a>
                 <button class="auth-btn" onclick="login()">Login</button>
                 <p class="auth-toggle">Don't have an account? <a onclick="switchToSignup()">Sign up</a></p>
             </div>
@@ -906,6 +943,27 @@
                 <input type="password" id="signupPassword" class="auth-input" placeholder="Password">
                 <button class="auth-btn" onclick="signup()">Sign Up</button>
                 <p class="auth-toggle">Already have an account? <a onclick="switchToLogin()">Login</a></p>
+            </div>
+            <!-- ── Forgot Password Form ───────────────────────────── -->
+            <div id="forgotPasswordForm" style="display: none;">
+                <p class="form-subtitle">Enter your registered email and we'll send you a secure reset link valid for 1 hour.</p>
+                <input type="email" id="forgotEmail" class="auth-input" placeholder="Your registered email"
+                       onkeydown="if(event.key==='Enter') requestPasswordReset()">
+                <button class="auth-btn" id="forgotBtn" onclick="requestPasswordReset()">Send Reset Link</button>
+                <p class="auth-toggle" style="margin-top:15px;">
+                    Remember your password? <a onclick="switchToLogin()">Back to Login</a>
+                </p>
+            </div>
+            <!-- ── Reset Password Form (shown after clicking email link) ── -->
+            <div id="resetPasswordForm" style="display: none;">
+                <p class="form-subtitle">Choose a strong new password for your account.</p>
+                <input type="password" id="newPassword" class="auth-input" placeholder="New password (min. 8 characters)"
+                       oninput="checkPasswordStrength(this.value)"
+                       onkeydown="if(event.key==='Enter') resetPassword()">
+                <div id="strengthIndicator" class="password-strength"></div>
+                <input type="password" id="confirmPassword" class="auth-input" placeholder="Confirm new password"
+                       onkeydown="if(event.key==='Enter') resetPassword()">
+                <button class="auth-btn" id="resetBtn" onclick="resetPassword()">Update Password</button>
             </div>
         </div>
     </div>
@@ -1198,17 +1256,78 @@
         function switchToSignup() {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('signupForm').style.display = 'block';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            document.getElementById('resetPasswordForm').style.display = 'none';
             document.getElementById('authError').innerHTML = '';
+            document.querySelector('.auth-card p:not(.auth-toggle):not(.form-subtitle)').textContent =
+                'Track your daily habits and build consistency';
         }
 
         function switchToLogin() {
             document.getElementById('signupForm').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            document.getElementById('resetPasswordForm').style.display = 'none';
             document.getElementById('authError').innerHTML = '';
+            document.querySelector('.auth-card p:not(.auth-toggle):not(.form-subtitle)').textContent =
+                'Track your daily habits and build consistency';
+        }
+
+        function switchToForgotPassword() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('resetPasswordForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+            document.getElementById('authError').innerHTML = '';
+            document.querySelector('.auth-card p:not(.auth-toggle):not(.form-subtitle)').textContent =
+                'Reset your password';
+        }
+
+        function showResetPasswordForm() {
+            // Make sure the auth screen is visible (in case auto-login ran)
+            document.getElementById('authScreen').style.display = 'flex';
+            document.getElementById('appContainer').classList.remove('active');
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            document.getElementById('resetPasswordForm').style.display = 'block';
+            document.getElementById('authError').innerHTML = '';
+            document.querySelector('.auth-card p:not(.auth-toggle):not(.form-subtitle)').textContent =
+                'Set a new password';
+            // Clear fields
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('strengthIndicator').textContent = '';
         }
 
         function showAuthError(msg) {
             document.getElementById('authError').innerHTML = `<div class="auth-error">${msg}</div>`;
+        }
+
+        function showAuthSuccess(msg) {
+            document.getElementById('authError').innerHTML = `<div class="auth-success">${msg}</div>`;
+        }
+
+        // Real-time password strength indicator
+        function checkPasswordStrength(password) {
+            const el = document.getElementById('strengthIndicator');
+            if (!password) { el.textContent = ''; return; }
+            let score = 0;
+            if (password.length >= 8)  score++;
+            if (password.length >= 12) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+            if (score <= 2) {
+                el.textContent = '⬤ Weak password';
+                el.className = 'password-strength strength-weak';
+            } else if (score <= 3) {
+                el.textContent = '⬤ Fair password';
+                el.className = 'password-strength strength-fair';
+            } else {
+                el.textContent = '⬤ Strong password';
+                el.className = 'password-strength strength-strong';
+            }
         }
 
         async function login() {
@@ -1237,6 +1356,84 @@
         async function logout() {
             try { await supabaseClient.auth.signOut(); location.reload(); }
             catch (e) { alert('Logout failed: ' + e.message); }
+        }
+
+        // ── Forgot Password ────────────────────────────────────────────────────────
+        async function requestPasswordReset() {
+            try {
+                const email = document.getElementById('forgotEmail').value.trim();
+                if (!email) { showAuthError('Please enter your email address.'); return; }
+
+                const btn = document.getElementById('forgotBtn');
+                btn.disabled = true;
+                btn.textContent = 'Sending…';
+
+                // redirectTo must point back to this same page so the recovery
+                // token in the URL hash is processed correctly.
+                const redirectTo = window.location.origin + window.location.pathname;
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
+
+                btn.disabled = false;
+                btn.textContent = 'Send Reset Link';
+
+                if (error) { showAuthError(error.message); return; }
+
+                // Always show success (don't reveal whether the email exists)
+                showAuthSuccess('✓ If that email is registered, a reset link has been sent. Check your inbox and spam folder.');
+                document.getElementById('forgotEmail').value = '';
+            } catch (e) {
+                document.getElementById('forgotBtn').disabled = false;
+                document.getElementById('forgotBtn').textContent = 'Send Reset Link';
+                showAuthError('Could not send reset email: ' + e.message);
+            }
+        }
+
+        // ── Reset Password (called after user clicks the email link) ───────────────
+        async function resetPassword() {
+            try {
+                const newPassword     = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (!newPassword || !confirmPassword) {
+                    showAuthError('Please fill in both password fields.'); return;
+                }
+                if (newPassword.length < 8) {
+                    showAuthError('Password must be at least 8 characters long.'); return;
+                }
+                if (newPassword !== confirmPassword) {
+                    showAuthError('Passwords do not match.'); return;
+                }
+
+                const btn = document.getElementById('resetBtn');
+                btn.disabled = true;
+                btn.textContent = 'Updating…';
+
+                const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+
+                btn.disabled = false;
+                btn.textContent = 'Update Password';
+
+                if (error) { showAuthError(error.message); return; }
+
+                showAuthSuccess('✓ Password updated! Redirecting to login…');
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                document.getElementById('strengthIndicator').textContent = '';
+
+                // Sign out the recovery session, then show the login form after a moment
+                setTimeout(async () => {
+                    await supabaseClient.auth.signOut();
+                    // Clear the hash from the URL so a page refresh won't re-trigger recovery
+                    history.replaceState(null, '', window.location.pathname);
+                    switchToLogin();
+                    showAuthSuccess('Password updated successfully. Please log in.');
+                }, 2000);
+
+            } catch (e) {
+                document.getElementById('resetBtn').disabled = false;
+                document.getElementById('resetBtn').textContent = 'Update Password';
+                showAuthError('Failed to update password: ' + e.message);
+            }
         }
 
         // ─── App Init ──────────────────────────────────────────────────────────────
@@ -2615,8 +2812,27 @@
         }
 
         // ─── Boot ──────────────────────────────────────────────────────────────────
+
+        // Listen for Supabase auth events.
+        // PASSWORD_RECOVERY fires when the user arrives via the reset-password email link.
+        supabaseClient.auth.onAuthStateChange((event, _session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                showResetPasswordForm();
+            }
+        });
+
         (async () => {
             try {
+                // Check whether the URL hash carries a recovery token.
+                // Supabase appends  #access_token=...&type=recovery  to the redirect URL.
+                const hashParams = new URLSearchParams(window.location.hash.slice(1));
+                if (hashParams.get('type') === 'recovery') {
+                    // Let getSession() exchange the token; onAuthStateChange will then
+                    // fire PASSWORD_RECOVERY and call showResetPasswordForm().
+                    await supabaseClient.auth.getSession();
+                    return;
+                }
+
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
                 if (error) { console.error('Auth check error:', error); return; }
                 if (session) { currentUser = session.user; await initApp(); }
