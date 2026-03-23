@@ -436,6 +436,77 @@
         .edit-btn { background: #dbeafe; color: #1e40af; }
         .delete-btn { background: #fee2e2; color: #b91c1c; }
 
+        /* ── Habit end-date visual styles ─────────────────────────── */
+        /* Cells after the habit's end_date: greyed-out, non-interactive */
+        .cell-ended {
+            background: #f3f4f6 !important;
+            opacity: 0.45;
+            pointer-events: none;
+        }
+        /* Small amber badge in the habit-name cell when end_date is set */
+        .end-date-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            font-size: 8px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 4px;
+            margin-left: 6px;
+            vertical-align: middle;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        /* Dim the habit-name text when the habit has ended this month */
+        .habit-row-ended td.habit-col {
+            color: var(--text-sub);
+            font-style: italic;
+        }
+
+        /* ── Delete-options modal ──────────────────────────────────── */
+        .delete-opt-btn {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            background: #f8fafc;
+            transition: all 0.15s;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+        .delete-opt-btn:hover { background: #e2e8f0; border-color: #cbd5e1; }
+        .delete-opt-btn small {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-sub);
+            display: block;
+        }
+        .delete-opt-btn.danger { border-color: #fecaca; background: #fff5f5; color: #b91c1c; }
+        .delete-opt-btn.danger:hover { background: #fee2e2; border-color: #f87171; }
+        .delete-opt-btn.danger small { color: #991b1b; }
+        .delete-modal-habit-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            word-break: break-word;
+            margin-bottom: 14px;
+            display: block;
+        }
+        .delete-modal-subtitle {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-bottom: 12px;
+            display: block;
+        }
+
         /* Save/Discard buttons */
         .save-section {
             background: white;
@@ -1145,12 +1216,22 @@
             <h2 id="modalTitle">Add Habit</h2>
             <label class="modal-label">Habit Name</label>
             <input type="text" id="habitName" class="modal-input" placeholder="e.g. Drink 2.5L Water">
-            <!-- NEW: Section selector -->
+            <!-- Section selector -->
             <label class="modal-label">Section <span style="color:var(--text-sub); font-weight:400;">(optional)</span></label>
             <select id="habitDivider" class="modal-input">
                 <option value="">— No Section (Ungrouped) —</option>
                 <!-- populated dynamically from dividers array -->
             </select>
+            <!-- End Date -->
+            <label class="modal-label">
+                End Date
+                <span style="color:var(--text-sub); font-weight:400;">(optional — leave blank for ongoing)</span>
+            </label>
+            <input type="date" id="habitEndDate" class="modal-input"
+                   title="After this date, checkboxes are disabled and the habit is hidden from future months">
+            <div id="endDateHint" style="font-size:11px; color:var(--text-sub); margin-top:-10px; margin-bottom:12px; display:none;">
+                📅 This habit will be hidden from months after the selected date.
+            </div>
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-secondary" onclick="closeHabitModal()">Cancel</button>
                 <button class="modal-btn modal-btn-primary" onclick="saveHabit()">Save</button>
@@ -1169,6 +1250,35 @@
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-secondary" onclick="closeDividerModal()">Cancel</button>
                 <button class="modal-btn modal-btn-primary" onclick="saveDivider()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         DELETE HABIT OPTIONS MODAL
+         ============================================= -->
+    <div class="modal" id="deleteHabitModal">
+        <div class="modal-content">
+            <h2>Remove Habit</h2>
+            <span class="delete-modal-habit-name" id="deleteHabitModalName"></span>
+            <span class="delete-modal-subtitle">Choose how you want to remove this habit:</span>
+
+            <!-- Option 1: Soft remove (set end_date) -->
+            <button class="delete-opt-btn" onclick="removeHabitFromMonth()">
+                📅 Remove from <span id="deleteModalMonthLabel">this month</span> onwards
+                <small>Sets an end date so the habit disappears from this and future months.
+                    All past completion data is preserved.</small>
+            </button>
+
+            <!-- Option 2: Hard delete -->
+            <button class="delete-opt-btn danger" onclick="deleteHabitForever()">
+                🗑️ Delete forever
+                <small>Permanently removes the habit and ALL its history. This cannot be undone.</small>
+            </button>
+
+            <div class="modal-actions" style="margin-top:4px;">
+                <button class="modal-btn modal-btn-secondary" style="flex:none; padding:8px 20px;"
+                        onclick="closeDeleteHabitModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -1232,6 +1342,7 @@
         let selectedRow   = null;
         let editingHabitId   = null;
         let editingDividerId = null;     // ← NEW
+        let deletingHabitId  = null;     // ← tracks which habit the delete modal is for
         let sortableInstance = null;
         let selectedColumn   = null;
         let pendingChanges   = {};
@@ -1484,11 +1595,14 @@
                 const startOfMonth = new Date(selectedYear, selectedMonth, 1).toISOString();
                 const endOfMonth   = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString();
 
-                // 1. Fetch habits
+                // 1. Fetch habits — exclude those whose end_date is before the start of the viewed month
+                //    (end_date IS NULL = ongoing, end_date >= first day = still active this month or later)
+                const firstDayStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2,'0')}-01`;
                 const { data: habitData, error: habitError } = await supabaseClient
                     .from('habits')
                     .select('*')
                     .eq('user_id', currentUser.id)
+                    .or(`end_date.is.null,end_date.gte.${firstDayStr}`)
                     .order('position', { ascending: true, nullsFirst: false });
                 if (habitError) throw habitError;
                 habits = habitData || [];
@@ -1534,6 +1648,14 @@
         // ─── Completion Toggle ─────────────────────────────────────────────────────
         async function toggleCell(habitId, day) {
             try {
+                // Guard: do not allow toggling a cell that is past the habit's end_date
+                const habit = habits.find(h => h.id === habitId);
+                if (habit && habit.end_date) {
+                    const ed = new Date(habit.end_date + 'T00:00:00');
+                    if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth && day > ed.getDate()) {
+                        return; // silently refuse — cell should already be disabled in the DOM
+                    }
+                }
                 const key = `${habitId}-${day}`;
                 const newState = !(completions[key] || false);
                 if (newState) { completions[key] = true; pendingChanges[key] = 'add'; }
@@ -1552,11 +1674,13 @@
         // ─── Habit Modal ───────────────────────────────────────────────────────────
         function openHabitModal(habitId = null) {
             editingHabitId = habitId;
-            const modal  = document.getElementById('habitModal');
-            const input  = document.getElementById('habitName');
-            const select = document.getElementById('habitDivider');
+            const modal    = document.getElementById('habitModal');
+            const input    = document.getElementById('habitName');
+            const select   = document.getElementById('habitDivider');
+            const endInput = document.getElementById('habitEndDate');
+            const hint     = document.getElementById('endDateHint');
 
-            // Populate section dropdown (NEW)
+            // Populate section dropdown
             select.innerHTML = '<option value="">— No Section (Ungrouped) —</option>';
             dividers.sort((a, b) => a.position - b.position).forEach(d => {
                 const opt = document.createElement('option');
@@ -1568,13 +1692,22 @@
             if (habitId) {
                 const habit = habits.find(h => h.id === habitId);
                 document.getElementById('modalTitle').textContent = 'Edit Habit';
-                input.value = habit.name;
-                select.value = habit.divider_id || '';    // Pre-select current section
+                input.value    = habit.name;
+                select.value   = habit.divider_id || '';
+                endInput.value = habit.end_date   || '';
+                hint.style.display = habit.end_date ? 'block' : 'none';
             } else {
                 document.getElementById('modalTitle').textContent = 'Add Habit';
-                input.value   = '';
-                select.value  = '';
+                input.value    = '';
+                select.value   = '';
+                endInput.value = '';
+                hint.style.display = 'none';
             }
+
+            // Show hint when user picks a date
+            endInput.oninput = () => {
+                hint.style.display = endInput.value ? 'block' : 'none';
+            };
 
             modal.classList.add('active');
             input.focus();
@@ -1589,13 +1722,15 @@
             try {
                 const name      = document.getElementById('habitName').value.trim();
                 const dividerId = document.getElementById('habitDivider').value || null;
+                const endDateRaw = document.getElementById('habitEndDate').value; // "YYYY-MM-DD" or ""
+                const endDate   = endDateRaw || null; // null = ongoing
 
                 if (!name) { alert('Please enter a habit name'); return; }
 
                 if (editingHabitId) {
                     const { error } = await supabaseClient
                         .from('habits')
-                        .update({ name, divider_id: dividerId })     // ← Save divider_id
+                        .update({ name, divider_id: dividerId, end_date: endDate })
                         .eq('id', editingHabitId)
                         .eq('user_id', currentUser.id);
                     if (error) throw error;
@@ -1605,7 +1740,8 @@
                         : -1;
                     const { error } = await supabaseClient
                         .from('habits')
-                        .insert({ name, user_id: currentUser.id, position: maxPos + 1, divider_id: dividerId });
+                        .insert({ name, user_id: currentUser.id, position: maxPos + 1,
+                                  divider_id: dividerId, end_date: endDate });
                     if (error) throw error;
                 }
 
@@ -1614,8 +1750,58 @@
             } catch (e) { alert('Failed to save habit: ' + e.message); }
         }
 
-        async function deleteHabit(habitId) {
-            if (!confirm('Delete this habit?')) return;
+        // ─── Delete Habit (two-option modal) ──────────────────────────────────────
+        function openDeleteHabitModal(habitId) {
+            const habit = habits.find(h => h.id === habitId);
+            if (!habit) return;
+            deletingHabitId = habitId;
+
+            document.getElementById('deleteHabitModalName').textContent = habit.name;
+
+            // Build "Remove from [Month] onwards" label using the currently viewed month
+            const monthNames = ['January','February','March','April','May','June',
+                                'July','August','September','October','November','December'];
+            document.getElementById('deleteModalMonthLabel').textContent =
+                `${monthNames[selectedMonth]} ${selectedYear}`;
+
+            document.getElementById('deleteHabitModal').classList.add('active');
+        }
+
+        function closeDeleteHabitModal() {
+            document.getElementById('deleteHabitModal').classList.remove('active');
+            deletingHabitId = null;
+        }
+
+        // Soft remove: set end_date = last day of the month BEFORE the currently viewed month.
+        // The habit disappears from the current and all future months; all past data is untouched.
+        async function removeHabitFromMonth() {
+            if (!deletingHabitId) return;
+            const habitId = deletingHabitId;
+            closeDeleteHabitModal();
+            try {
+                // new Date(Y, M, 0) → last day of month M-1  (JS month is 0-indexed)
+                const prevMonthLastDay = new Date(selectedYear, selectedMonth, 0);
+                const endDateStr = toDateStr(prevMonthLastDay);
+
+                const { error } = await supabaseClient
+                    .from('habits')
+                    .update({ end_date: endDateStr })
+                    .eq('id', habitId)
+                    .eq('user_id', currentUser.id);
+                if (error) throw error;
+
+                await loadHabits();
+            } catch (e) { alert('Failed to remove habit: ' + e.message); }
+        }
+
+        // Hard delete: permanently removes the habit row (cascade deletes completions via FK or manual).
+        async function deleteHabitForever() {
+            if (!deletingHabitId) return;
+            const habitId = deletingHabitId;
+            const habit   = habits.find(h => h.id === habitId);
+            const name    = habit ? `"${habit.name}"` : 'this habit';
+            if (!confirm(`Permanently delete ${name} and ALL its historical data?\n\nThis cannot be undone.`)) return;
+            closeDeleteHabitModal();
             try {
                 const { error } = await supabaseClient
                     .from('habits').delete()
@@ -2036,11 +2222,27 @@
             const isThisMonth  = createdYear === selectedYear && createdMonth === selectedMonth;
             const startDay     = isThisMonth ? createdDay : 1;
 
+            // ── Compute effective last trackable day for this month ────────────────
+            // end_date can be: null (ongoing), within this month, or in a future month.
+            // Habits whose end_date is BEFORE this month are filtered out in loadHabits,
+            // so we only need to handle null / this month / future month here.
+            let endDay = daysInMonth; // default: track through full month
+            let hasEndThisMonth = false;
+            if (habit.end_date) {
+                const ed = new Date(habit.end_date + 'T00:00:00');
+                if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth) {
+                    endDay = ed.getDate();
+                    hasEndThisMonth = true;
+                }
+                // If end_date is in a future month → endDay stays daysInMonth (no visual change)
+            }
+
+            // ── Stats (only count days between startDay and endDay) ───────────────
             let done = 0;
-            for (let d = startDay; d <= daysInMonth; d++) {
+            for (let d = startDay; d <= endDay; d++) {
                 if (completions[`${habit.id}-${d}`]) done++;
             }
-            const validDays = daysInMonth - startDay + 1;
+            const validDays = Math.max(0, endDay - startDay + 1);
             const pct = validDays > 0 ? Math.round((done / validDays) * 100) : 0;
 
             const isHidden = habit.divider_id && collapsedSections.has(habit.divider_id);
@@ -2049,20 +2251,29 @@
             tr.className = [
                 'draggable-row',
                 indented ? 'habit-indented' : '',
+                hasEndThisMonth ? 'habit-row-ended' : '',
                 isHidden ? 'habit-row-hidden' : ''
             ].filter(Boolean).join(' ');
             tr.dataset.habitId = habit.id;
-            if (habit.divider_id) tr.dataset.sectionId = habit.divider_id; // for fast show/hide
+            if (habit.divider_id) tr.dataset.sectionId = habit.divider_id;
 
             const dragHandle = typeof Sortable !== 'undefined'
                 ? '<span class="drag-handle">☰</span>'
                 : '';
 
+            // End-date badge shown inside the habit name cell
+            let endBadgeHtml = '';
+            if (habit.end_date) {
+                const ed = new Date(habit.end_date + 'T00:00:00');
+                const label = ed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                endBadgeHtml = `<span class="end-date-badge" title="Ends ${label}">Ends ${label}</span>`;
+            }
+
             tr.innerHTML = `
                 <td class="habit-col">
                     ${dragHandle}
                     <div class="habit-name-scroll" title="${escapeHtml(habit.name)}">
-                        ${escapeHtml(habit.name)}
+                        ${escapeHtml(habit.name)}${endBadgeHtml}
                     </div>
                 </td>
                 <td class="stats-col">${done}</td>
@@ -2072,13 +2283,25 @@
                 if (!e.target.classList.contains('drag-handle')) selectRow(tr);
             });
 
+            // ── Day cells ─────────────────────────────────────────────────────────
             for (let d = 1; d <= daysInMonth; d++) {
                 const td = document.createElement('td');
                 td.dataset.day = d;
                 if (selectedColumn === d) td.classList.add('active-column');
+
+                // Three possible states for a cell:
+                // (A) Before habit was created this month → disabled (pre-existing behaviour)
+                // (B) After habit's end_date → disabled + greyed-out (.cell-ended)
+                // (C) Normal trackable day → interactive checkbox
                 if (isThisMonth && d < createdDay) {
+                    // (A) habit didn't exist yet
+                    td.innerHTML = '<input type="checkbox" disabled>';
+                } else if (d > endDay) {
+                    // (B) past the end_date for this month
+                    td.classList.add('cell-ended');
                     td.innerHTML = '<input type="checkbox" disabled>';
                 } else {
+                    // (C) normal day
                     const checked = completions[`${habit.id}-${d}`] ? 'checked' : '';
                     td.innerHTML = `<input type="checkbox" ${checked}
                         onchange="toggleCell('${habit.id}', ${d})"
@@ -2090,8 +2313,8 @@
             const actionsTd = document.createElement('td');
             actionsTd.className = 'actions-col';
             actionsTd.innerHTML = `
-                <button class="action-btn edit-btn" onclick="openHabitModal('${habit.id}')">Edit</button>
-                <button class="action-btn delete-btn" onclick="deleteHabit('${habit.id}')">Del</button>`;
+                <button class="action-btn edit-btn"   onclick="openHabitModal('${habit.id}')">Edit</button>
+                <button class="action-btn delete-btn" onclick="openDeleteHabitModal('${habit.id}')">Del</button>`;
             tr.appendChild(actionsTd);
             tbody.appendChild(tr);
         }
@@ -2194,10 +2417,20 @@
                     const createdDay   = createdDate.getDate();
                     const isThisMonth  = createdDate.getFullYear() === selectedYear && createdDate.getMonth() === selectedMonth;
                     const startDay     = isThisMonth ? createdDay : 1;
-                    const validDays    = daysInMonth - startDay + 1;
 
+                    // Respect end_date: only count days up to endDay
+                    let endDay = daysInMonth;
+                    if (habit.end_date) {
+                        const ed = new Date(habit.end_date + 'T00:00:00');
+                        if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth) {
+                            endDay = ed.getDate();
+                        }
+                        // Future end_date → endDay stays daysInMonth
+                    }
+
+                    const validDays = Math.max(0, endDay - startDay + 1);
                     let count = 0;
-                    for (let d = startDay; d <= daysInMonth; d++) {
+                    for (let d = startDay; d <= endDay; d++) {
                         if (completions[`${habit.id}-${d}`]) count++;
                     }
                     const pct = validDays > 0 ? Math.round((count / validDays) * 100) : 0;
@@ -2226,12 +2459,24 @@
                 document.getElementById('worstName').textContent  = worst.name;
                 document.getElementById('worstScore').textContent = `${worst.pct}% complete`;
 
-                // Line chart
+                // Line chart — per-day completion %.
+                // Only count a habit on day D if: it had started by day D AND hasn't ended before day D.
                 const dailyPerf = Array.from({ length: daysInMonth }, (_, i) => {
-                    const day      = i + 1;
+                    const day = i + 1;
                     const dayHabits = habits.filter(h => {
                         const cd = new Date(h.created_at);
-                        return !(cd.getFullYear() === selectedYear && cd.getMonth() === selectedMonth && day < cd.getDate());
+                        // Exclude if not yet created on this day this month
+                        if (cd.getFullYear() === selectedYear && cd.getMonth() === selectedMonth && day < cd.getDate()) {
+                            return false;
+                        }
+                        // Exclude if end_date is set and this day is past it
+                        if (h.end_date) {
+                            const ed = new Date(h.end_date + 'T00:00:00');
+                            if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth && day > ed.getDate()) {
+                                return false;
+                            }
+                        }
+                        return true;
                     });
                     const completed = dayHabits.filter(h => completions[`${h.id}-${day}`]).length;
                     return dayHabits.length > 0 ? (completed / dayHabits.length) * 100 : 0;
