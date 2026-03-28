@@ -380,252 +380,6 @@
             cursor: not-allowed;
         }
 
-        /* ── Percentage completion cells ──────────────────────────────────────
-         * Matches the original checkbox exactly in size (14×14 px) and feel.
-         *   0%      → white box + gray border   (= unchecked checkbox)
-         *   1–99%   → amber fill bar + tiny %   (partial — new state)
-         *   100%    → solid #10b981 + white ✓   (= checked, accent-color: var(--success))
-         *   disabled → opacity 0.3              (= input[type=checkbox]:disabled)
-         * ─────────────────────────────────────────────────────────────────── */
-        .pct-cell {
-            width: 14px;
-            height: 14px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 6.5px;
-            font-weight: 800;
-            border-radius: 2px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            background: #ffffff;
-            border: 1.5px solid #9ca3af;
-            transition: border-color 0.12s, box-shadow 0.12s;
-            user-select: none;
-            vertical-align: middle;
-            box-sizing: border-box;
-        }
-        .pct-cell:hover {
-            border-color: var(--success);
-            box-shadow: 0 0 0 2px rgba(16,185,129,0.20);
-        }
-        .pct-cell span { position: relative; z-index: 1; }
-
-        /* fill bar driven by CSS var --fill */
-        .pct-cell::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            width: var(--fill, 0%);
-            background: #fbbf24;
-            opacity: 0.55;
-            border-radius: 1px;
-            transition: width 0.15s ease;
-        }
-
-        /* 1–99% : amber border, dark amber text */
-        .pct-cell.pct-partial {
-            border-color: #f59e0b;
-            color: #78350f;
-        }
-        .pct-cell.pct-partial:hover {
-            border-color: #d97706;
-            box-shadow: 0 0 0 2px rgba(245,158,11,0.20);
-        }
-
-        /* 100% : solid green — mirrors accent-color: var(--success) checked checkbox */
-        .pct-cell.pct-full {
-            background: #10b981;
-            border-color: #10b981;
-            color: #ffffff;
-            font-size: 10px;
-        }
-        .pct-cell.pct-full::before { display: none; }
-        .pct-cell.pct-full:hover {
-            background: #059669;
-            border-color: #059669;
-            box-shadow: 0 0 0 2px rgba(16,185,129,0.28);
-        }
-
-        /* disabled (pre-creation / ended) — mirrors input[type=checkbox]:disabled */
-        .pct-cell.pct-disabled {
-            background: #ffffff;
-            border-color: #d1d5db;
-            cursor: not-allowed;
-            opacity: 0.3;
-        }
-        .pct-cell.pct-disabled:hover { box-shadow: none; border-color: #d1d5db; }
-
-        /* ── Percentage Popover ──────────────────────────────────────────────── */
-        #pctPopover {
-            position: fixed;
-            z-index: 9999;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 14px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06);
-            width: 230px;
-            display: none;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        .pop-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 11px;
-            gap: 6px;
-        }
-        .pop-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-main);
-            line-height: 1.35;
-            flex: 1;
-        }
-        .pop-close {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-sub);
-            font-size: 14px;
-            padding: 0;
-            line-height: 1;
-            flex-shrink: 0;
-            transition: color 0.12s;
-        }
-        .pop-close:hover { color: var(--danger); }
-
-        /* Quick buttons row */
-        .pop-quick {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 10px;
-        }
-        .pop-qbtn {
-            flex: 1;
-            padding: 5px 2px;
-            border: 1px solid #e2e8f0;
-            border-radius: 7px;
-            background: #f8fafc;
-            font-size: 9.5px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.12s;
-            color: var(--text-main);
-        }
-        .pop-qbtn:hover { background: #e0e7ff; border-color: var(--primary); color: var(--primary); }
-        .pop-qbtn.is-active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .pop-qbtn.qbtn-clear { border-color: #fecaca; color: var(--danger); background: #fff5f5; }
-        .pop-qbtn.qbtn-clear:hover { background: #fee2e2; border-color: #f87171; }
-        .pop-qbtn.qbtn-done { border-color: #6ee7b7; color: #065f46; background: #f0fdf4; }
-        .pop-qbtn.qbtn-done:hover { background: #d1fae5; border-color: #34d399; }
-
-        /* Section separator */
-        .pop-sep {
-            border: none;
-            border-top: 1px solid #f1f5f9;
-            margin: 9px 0;
-        }
-        .pop-section-label {
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.07em;
-            color: var(--text-sub);
-            margin-bottom: 7px;
-        }
-
-        /* Time calculator */
-        .pop-time-row {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 4px;
-        }
-        .pop-time-input {
-            flex: 1;
-            padding: 4px 5px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            text-align: center;
-            min-width: 0;
-            transition: border-color 0.12s;
-        }
-        .pop-time-input:focus { outline: none; border-color: var(--primary); }
-        .pop-time-sep {
-            font-size: 11px;
-            color: var(--text-sub);
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        .pop-time-calc {
-            width: 100%;
-            padding: 5px;
-            background: var(--success);
-            color: #fff;
-            border: none;
-            border-radius: 7px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.12s;
-            margin-top: 5px;
-        }
-        .pop-time-calc:hover { background: #059669; }
-
-        /* Manual stepper row */
-        .pop-stepper-row {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .pop-step-btn {
-            width: 26px;
-            height: 26px;
-            border: 1px solid #e2e8f0;
-            border-radius: 7px;
-            background: #f8fafc;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            color: var(--text-main);
-            transition: all 0.12s;
-        }
-        .pop-step-btn:hover { background: #e0e7ff; border-color: var(--primary); }
-        #pctManualInput {
-            flex: 1;
-            padding: 4px 5px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            text-align: center;
-            min-width: 0;
-        }
-        #pctManualInput:focus { outline: none; border-color: var(--primary); }
-        .pop-set-btn {
-            padding: 5px 9px;
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            border-radius: 7px;
-            font-size: 10px;
-            font-weight: 700;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: background 0.12s;
-        }
-        .pop-set-btn:hover { background: #4338ca; }
-
         tr.selected { background: #e0e7ff !important; }
         
         /* Actions column */
@@ -1194,6 +948,71 @@
         }
         .wt-empty-icon { font-size: 28px; display: block; margin-bottom: 8px; }
 
+        /* Past-week rows: read-only, slightly muted */
+        .wt-row-past td.wt-task-col {
+            color: var(--text-sub);
+            font-style: italic;
+        }
+        /* Archived label shown on past-week section header */
+        .wt-archived-notice {
+            display: inline-block;
+            background: #f1f5f9;
+            color: var(--text-sub);
+            border: 1px solid #e2e8f0;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 99px;
+            margin-left: 8px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            vertical-align: middle;
+        }
+        /* History modal — grouped-by-week layout */
+        .hw-week-block { margin-bottom: 20px; }
+        .hw-week-header {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-main);
+            padding: 6px 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hw-now-badge {
+            background: #d1fae5;
+            color: #065f46;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 7px;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .hw-task-list {
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+        }
+        .hw-task-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 12px;
+        }
+        .hw-task-row:last-child { border-bottom: none; }
+        .hw-task-row:hover { background: #f8fafc; }
+        .hw-task-name { flex: 1; font-weight: 600; color: var(--text-main); }
+        .hw-task-name.missed { color: var(--text-sub); font-weight: 400; }
+        .hw-check { color: var(--success); font-size: 14px; font-weight: 800; }
+        .hw-cross  { color: #d1d5db; font-size: 14px; }
+
         /* ── History Modal ── */
         .history-modal-content {
             background: white;
@@ -1425,7 +1244,7 @@
                  ═══════════════════════════════════════ -->
             <div class="weekly-section">
                 <div class="section-title">
-                    <span>Weekly Tasks</span>
+                    <span>Weekly Tasks<span class="wt-archived-notice" id="wtArchivedNotice" style="display:none;">Read-only</span></span>
                     <div style="display:flex; gap:8px; align-items:center;">
                         <!-- Week navigation -->
                         <div class="week-nav">
@@ -1435,7 +1254,7 @@
                             <button class="week-today-btn" onclick="goToCurrentWeek()">Today</button>
                         </div>
                         <button class="week-history-btn" onclick="openHistoryModal()">📋 History</button>
-                        <button class="add-btn" onclick="openWeeklyTaskModal()">+ Add Task</button>
+                        <button class="add-btn" id="wtAddTaskBtn" onclick="openWeeklyTaskModal()">+ Add Task</button>
                     </div>
                 </div>
                 <div class="weekly-table-container">
@@ -1559,54 +1378,6 @@
         </div>
     </div>
 
-    <!-- =============================================
-         PARTIAL COMPLETION POPOVER
-         ============================================= -->
-    <div id="pctPopover" role="dialog" aria-label="Set completion">
-
-        <!-- Header: habit name + date + close -->
-        <div class="pop-header">
-            <span class="pop-title" id="popTitle">Set completion</span>
-            <button class="pop-close" onclick="closePctPopover()" title="Close">✕</button>
-        </div>
-
-        <!-- Quick-tap buttons -->
-        <div class="pop-quick">
-            <button class="pop-qbtn qbtn-clear" onclick="applyPct(0)">✕ Clear</button>
-            <button class="pop-qbtn" data-pct="25"  onclick="applyPct(25)">25%</button>
-            <button class="pop-qbtn" data-pct="50"  onclick="applyPct(50)">50%</button>
-            <button class="pop-qbtn" data-pct="75"  onclick="applyPct(75)">75%</button>
-            <button class="pop-qbtn qbtn-done" data-pct="100" onclick="applyPct(100)">✓ Done</button>
-        </div>
-
-        <hr class="pop-sep">
-
-        <!-- Time-based calculator -->
-        <div class="pop-section-label">⏱ Time Calculator</div>
-        <div class="pop-time-row">
-            <input type="number" id="popActual" class="pop-time-input"
-                   min="0" placeholder="Done" oninput="syncTimeToManual()">
-            <span class="pop-time-sep">of</span>
-            <input type="number" id="popTarget" class="pop-time-input"
-                   min="1" placeholder="Goal">
-            <span class="pop-time-sep" style="font-size:9px;color:var(--text-sub)">min</span>
-        </div>
-        <button class="pop-time-calc" onclick="applyTimePct()">Calculate &amp; Apply</button>
-
-        <hr class="pop-sep">
-
-        <!-- Manual % stepper -->
-        <div class="pop-section-label">🎯 Custom %</div>
-        <div class="pop-stepper-row">
-            <button class="pop-step-btn" onclick="stepManual(-5)">−</button>
-            <input type="number" id="pctManualInput" min="0" max="100" step="5" value="0"
-                   onkeydown="if(event.key==='Enter') applyManual()">
-            <button class="pop-step-btn" onclick="stepManual(5)">+</button>
-            <button class="pop-set-btn" onclick="applyManual()">Set</button>
-        </div>
-
-    </div>
-
     <script>
         // ─── Supabase Config ───────────────────────────────────────────────────────
         const SUPABASE_URL = 'https://ngxzaywoelxukmrvbhux.supabase.co';
@@ -1631,20 +1402,16 @@
         // ─── State ─────────────────────────────────────────────────────────────────
         let currentUser   = null;
         let habits        = [];
-        let dividers      = [];
-        let completions   = {};   // key:"habitId-day" → INTEGER 1–100; absent key = 0% (no row)
+        let dividers      = [];          // ← NEW: sections/dividers array
+        let completions   = {};
         let selectedRow   = null;
         let editingHabitId   = null;
-        let editingDividerId = null;
-        let deletingHabitId  = null;
+        let editingDividerId = null;     // ← NEW
+        let deletingHabitId  = null;     // ← tracks which habit the delete modal is for
         let sortableInstance = null;
         let selectedColumn   = null;
-        let pendingChanges   = {};  // key:"habitId-day" → pct 0–100 (0 = delete on save)
-        let collapsedSections = new Set();
-
-        // Popover state
-        let _popHabitId = null;
-        let _popDay     = null;
+        let pendingChanges   = {};
+        let collapsedSections = new Set(); // IDs of dividers whose habits are hidden
 
         // ── Weekly tracker state ─────────────────────────────────────────────────
         let weeklyTasks        = [];
@@ -1931,8 +1698,7 @@
                 completions = {};
                 (compData || []).forEach(c => {
                     const day = new Date(c.completion_date).getDate();
-                    // Store the actual percentage. Existing rows without the column → default 100.
-                    completions[`${c.habit_id}-${day}`] = c.completion_percentage || 100;
+                    completions[`${c.habit_id}-${day}`] = true;
                 });
 
                 pendingChanges = {};
@@ -1944,128 +1710,25 @@
             }
         }
 
-        // ─── Percentage Cell Logic ─────────────────────────────────────────────────
-
-        // Core: set a cell to pct (0 = clear). Updates in-memory state + marks pending + re-renders.
-        function setCellPct(habitId, day, pct) {
-            pct = Math.max(0, Math.min(100, Math.round(pct)));
-            const key = `${habitId}-${day}`;
-            if (pct === 0) { delete completions[key]; }
-            else           { completions[key] = pct; }
-            pendingChanges[key] = pct; // 0 = "delete on save", 1–100 = "upsert"
-            renderTable();
-            updateSaveButtonState();
+        // ─── Completion Toggle ─────────────────────────────────────────────────────
+        async function toggleCell(habitId, day) {
+            try {
+                // Guard: do not allow toggling a cell that is past the habit's end_date
+                const habit = habits.find(h => h.id === habitId);
+                if (habit && habit.end_date) {
+                    const ed = new Date(habit.end_date + 'T00:00:00');
+                    if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth && day > ed.getDate()) {
+                        return; // silently refuse — cell should already be disabled in the DOM
+                    }
+                }
+                const key = `${habitId}-${day}`;
+                const newState = !(completions[key] || false);
+                if (newState) { completions[key] = true; pendingChanges[key] = 'add'; }
+                else          { delete completions[key]; pendingChanges[key] = 'remove'; }
+                renderTable();
+                updateSaveButtonState();
+            } catch (e) { alert('Failed to update completion: ' + e.message); }
         }
-
-        // Silent variant — no re-render (used in batch column ops)
-        function setCellPctSilent(habitId, day, pct) {
-            pct = Math.max(0, Math.min(100, Math.round(pct)));
-            const key = `${habitId}-${day}`;
-            if (pct === 0) { delete completions[key]; }
-            else           { completions[key] = pct; }
-            pendingChanges[key] = pct;
-        }
-
-        // ─── Popover ───────────────────────────────────────────────────────────────
-
-        function openPctPopover(habitId, day, currentPct, tdEl) {
-            _popHabitId = habitId;
-            _popDay     = day;
-
-            const habit = habits.find(h => h.id === habitId);
-            const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun',
-                            'Jul','Aug','Sep','Oct','Nov','Dec'];
-            document.getElementById('popTitle').textContent =
-                `${habit ? habit.name : '–'}  ·  ${MONTHS[selectedMonth]} ${day}`;
-
-            // Sync manual input to current value
-            document.getElementById('pctManualInput').value = currentPct;
-            document.getElementById('popActual').value = '';
-            document.getElementById('popTarget').value = '';
-
-            // Highlight matching quick button
-            document.querySelectorAll('.pop-qbtn[data-pct]').forEach(btn => {
-                btn.classList.toggle('is-active', parseInt(btn.dataset.pct) === currentPct);
-            });
-
-            // Position: below the cell, flip up if near bottom
-            const pop  = document.getElementById('pctPopover');
-            pop.style.display = 'block';
-            const rect = tdEl.getBoundingClientRect();
-            const pw   = pop.offsetWidth  || 230;
-            const ph   = pop.offsetHeight || 260;
-
-            let top  = rect.bottom + 5;
-            let left = rect.left - pw / 2 + rect.width / 2;
-
-            if (top + ph > window.innerHeight - 10) top = rect.top - ph - 5;
-            if (left + pw > window.innerWidth  - 8) left = window.innerWidth - pw - 8;
-            if (left < 8) left = 8;
-
-            pop.style.top  = top  + 'px';
-            pop.style.left = left + 'px';
-        }
-
-        function closePctPopover() {
-            document.getElementById('pctPopover').style.display = 'none';
-            _popHabitId = null;
-            _popDay     = null;
-        }
-
-        // Quick-button: apply and close
-        function applyPct(pct) {
-            if (_popHabitId === null) return;
-            setCellPct(_popHabitId, _popDay, pct);
-            closePctPopover();
-        }
-
-        // Time calculator: apply when user clicks "Calculate & Apply"
-        function applyTimePct() {
-            const actual = parseFloat(document.getElementById('popActual').value);
-            const target = parseFloat(document.getElementById('popTarget').value);
-            if (isNaN(actual) || isNaN(target) || target <= 0) {
-                alert('Please enter valid numbers for both "Done" and "Goal" minutes.');
-                return;
-            }
-            const pct = Math.round(Math.min(100, (actual / target) * 100));
-            document.getElementById('pctManualInput').value = pct;
-            applyPct(pct);
-        }
-
-        // Live-sync: update manual input while user types in actual-time box
-        function syncTimeToManual() {
-            const actual = parseFloat(document.getElementById('popActual').value);
-            const target = parseFloat(document.getElementById('popTarget').value);
-            if (!isNaN(actual) && !isNaN(target) && target > 0) {
-                document.getElementById('pctManualInput').value =
-                    Math.round(Math.min(100, (actual / target) * 100));
-            }
-        }
-
-        // Manual stepper
-        function stepManual(delta) {
-            const inp = document.getElementById('pctManualInput');
-            const val = Math.max(0, Math.min(100, (parseInt(inp.value, 10) || 0) + delta));
-            inp.value = val;
-            document.querySelectorAll('.pop-qbtn[data-pct]').forEach(btn => {
-                btn.classList.toggle('is-active', parseInt(btn.dataset.pct) === val);
-            });
-        }
-
-        // Apply manual input
-        function applyManual() {
-            const raw = parseInt(document.getElementById('pctManualInput').value, 10);
-            if (isNaN(raw)) return;
-            applyPct(Math.max(0, Math.min(100, raw)));
-        }
-
-        // Close on outside click
-        document.addEventListener('mousedown', (e) => {
-            const pop = document.getElementById('pctPopover');
-            if (pop && pop.style.display !== 'none' && !pop.contains(e.target)) {
-                closePctPopover();
-            }
-        });
 
         function selectRow(row) {
             if (selectedRow) selectedRow.classList.remove('selected');
@@ -2363,21 +2026,21 @@
 
         function toggleColumnCheckboxes(day) {
             try {
-                const globalCb  = document.querySelector(`.global-checkbox[data-day="${day}"]`);
-                const targetPct = globalCb.checked ? 100 : 0;
+                const globalCb = document.querySelector(`.global-checkbox[data-day="${day}"]`);
+                const shouldCheck = globalCb.checked;
                 selectColumn(day);
-                habits.forEach(habit => {
-                    // Skip days before habit existed
-                    const cd = new Date(habit.created_at);
-                    if (cd.getFullYear() === selectedYear && cd.getMonth() === selectedMonth
-                            && day < cd.getDate()) return;
-                    // Skip days past end_date
-                    if (habit.end_date) {
-                        const ed = new Date(habit.end_date + 'T00:00:00');
-                        if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth
-                                && day > ed.getDate()) return;
+                document.querySelectorAll(`td[data-day="${day}"]`).forEach(td => {
+                    const cb = td.querySelector('input[type="checkbox"]:not(:disabled)');
+                    if (!cb) return;
+                    const habitRow = td.closest('tr');
+                    const habitId  = habitRow?.dataset.habitId;
+                    if (!habitId) return;
+                    const key = `${habitId}-${day}`;
+                    if ((completions[key] || false) !== shouldCheck) {
+                        cb.checked = shouldCheck;
+                        if (shouldCheck) { completions[key] = true; pendingChanges[key] = 'add'; }
+                        else             { delete completions[key]; pendingChanges[key] = 'remove'; }
                     }
-                    setCellPctSilent(habit.id, day, targetPct);
                 });
                 renderTable();
                 updateSaveButtonState();
@@ -2388,28 +2051,14 @@
             for (let d = 1; d <= daysInMonth; d++) {
                 const gcb = document.querySelector(`.global-checkbox[data-day="${d}"]`);
                 if (!gcb) continue;
-
-                const activeHabits = habits.filter(h => {
-                    const cd = new Date(h.created_at);
-                    if (cd.getFullYear() === selectedYear && cd.getMonth() === selectedMonth
-                            && d < cd.getDate()) return false;
-                    if (h.end_date) {
-                        const ed = new Date(h.end_date + 'T00:00:00');
-                        if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth
-                                && d > ed.getDate()) return false;
-                    }
-                    return true;
-                });
-
-                if (activeHabits.length === 0) { gcb.checked = false; gcb.indeterminate = false; continue; }
-
-                const pcts    = activeHabits.map(h => completions[`${h.id}-${d}`] || 0);
-                const allFull = pcts.every(p => p === 100);
-                const allZero = pcts.every(p => p === 0);
-
-                if      (allFull) { gcb.checked = true;  gcb.indeterminate = false; }
-                else if (allZero) { gcb.checked = false; gcb.indeterminate = false; }
-                else              { gcb.checked = false; gcb.indeterminate = true;  }
+                const cbs = Array.from(document.querySelectorAll(`td[data-day="${d}"]`))
+                    .map(td => td.querySelector('input[type="checkbox"]:not(:disabled)'))
+                    .filter(Boolean);
+                if (cbs.length === 0) { gcb.checked = false; gcb.indeterminate = false; continue; }
+                const checked = cbs.filter(cb => cb.checked).length;
+                if      (checked === 0)         { gcb.checked = false; gcb.indeterminate = false; }
+                else if (checked === cbs.length) { gcb.checked = true;  gcb.indeterminate = false; }
+                else                             { gcb.checked = false; gcb.indeterminate = true; }
             }
         }
 
@@ -2444,42 +2093,27 @@
                 saveBtn.textContent = 'Saving...';
                 saveBtn.disabled    = true;
 
-                // Build a flat list: { habitId, dateStr, pct }
-                const pendingItems = [];
-                for (const [key, pct] of Object.entries(pendingChanges)) {
+                const insertions = [], deletions = [];
+
+                for (const [key, action] of Object.entries(pendingChanges)) {
                     const lastDash = key.lastIndexOf('-');
                     const habitId  = key.substring(0, lastDash);
                     const day      = parseInt(key.substring(lastDash + 1), 10);
-                    if (isNaN(day)) throw new Error(`Invalid key: ${key}`);
+                    if (isNaN(day)) throw new Error(`Invalid day in key: ${key}`);
                     const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                    pendingItems.push({ habitId, dateStr, pct });
+
+                    if (action === 'add')    insertions.push({ habit_id: habitId, user_id: currentUser.id, completion_date: dateStr });
+                    else if (action === 'remove') deletions.push({ habitId, dateStr });
                 }
 
-                // Step 1 — delete every pending cell's existing row (clean slate)
-                await Promise.all(
-                    pendingItems.map(({ habitId, dateStr }) =>
-                        supabaseClient.from('habit_completions').delete()
-                            .eq('habit_id', habitId)
-                            .eq('completion_date', dateStr)
-                            .eq('user_id', currentUser.id)
-                    )
-                );
-
-                // Step 2 — re-insert non-zero entries with completion_percentage
-                const insertions = pendingItems
-                    .filter(item => item.pct > 0)
-                    .map(({ habitId, dateStr, pct }) => ({
-                        habit_id:              habitId,
-                        user_id:               currentUser.id,
-                        completion_date:       dateStr,
-                        completion_percentage: pct
-                    }));
-
                 if (insertions.length > 0) {
-                    const { error } = await supabaseClient
-                        .from('habit_completions')
-                        .insert(insertions);
-                    if (error) throw error;
+                    const { error } = await supabaseClient.from('habit_completions').insert(insertions);
+                    if (error && error.code !== '23505') throw error;
+                }
+
+                for (const { habitId, dateStr } of deletions) {
+                    await supabaseClient.from('habit_completions').delete()
+                        .eq('habit_id', habitId).eq('completion_date', dateStr).eq('user_id', currentUser.id);
                 }
 
                 pendingChanges = {};
@@ -2653,8 +2287,11 @@
             const isThisMonth  = createdYear === selectedYear && createdMonth === selectedMonth;
             const startDay     = isThisMonth ? createdDay : 1;
 
-            // end_date support: compute last trackable day for this month
-            let endDay = daysInMonth;
+            // ── Compute effective last trackable day for this month ────────────────
+            // end_date can be: null (ongoing), within this month, or in a future month.
+            // Habits whose end_date is BEFORE this month are filtered out in loadHabits,
+            // so we only need to handle null / this month / future month here.
+            let endDay = daysInMonth; // default: track through full month
             let hasEndThisMonth = false;
             if (habit.end_date) {
                 const ed = new Date(habit.end_date + 'T00:00:00');
@@ -2662,16 +2299,16 @@
                     endDay = ed.getDate();
                     hasEndThisMonth = true;
                 }
+                // If end_date is in a future month → endDay stays daysInMonth (no visual change)
             }
 
-            // ── Weighted score: 100% = 1.0, 50% = 0.5, etc. ─────────────────────
-            let score = 0;
+            // ── Stats (only count days between startDay and endDay) ───────────────
+            let done = 0;
             for (let d = startDay; d <= endDay; d++) {
-                score += (completions[`${habit.id}-${d}`] || 0) / 100;
+                if (completions[`${habit.id}-${d}`]) done++;
             }
-            const validDays  = Math.max(0, endDay - startDay + 1);
-            const avgPct     = validDays > 0 ? Math.round((score / validDays) * 100) : 0;
-            const scoreLabel = Number.isInteger(score) ? score : score.toFixed(1);
+            const validDays = Math.max(0, endDay - startDay + 1);
+            const pct = validDays > 0 ? Math.round((done / validDays) * 100) : 0;
 
             const isHidden = habit.divider_id && collapsedSections.has(habit.divider_id);
 
@@ -2689,7 +2326,7 @@
                 ? '<span class="drag-handle">☰</span>'
                 : '';
 
-            // End-date badge
+            // End-date badge shown inside the habit name cell
             let endBadgeHtml = '';
             if (habit.end_date) {
                 const ed = new Date(habit.end_date + 'T00:00:00');
@@ -2704,8 +2341,8 @@
                         ${escapeHtml(habit.name)}${endBadgeHtml}
                     </div>
                 </td>
-                <td class="stats-col">${scoreLabel}</td>
-                <td class="stats-col">${avgPct}%</td>`;
+                <td class="stats-col">${done}</td>
+                <td class="stats-col">${pct}%</td>`;
 
             tr.addEventListener('click', (e) => {
                 if (!e.target.classList.contains('drag-handle')) selectRow(tr);
@@ -2717,29 +2354,23 @@
                 td.dataset.day = d;
                 if (selectedColumn === d) td.classList.add('active-column');
 
+                // Three possible states for a cell:
+                // (A) Before habit was created this month → disabled (pre-existing behaviour)
+                // (B) After habit's end_date → disabled + greyed-out (.cell-ended)
+                // (C) Normal trackable day → interactive checkbox
                 if (isThisMonth && d < createdDay) {
-                    // (A) before habit existed
-                    const el = document.createElement('div');
-                    el.className = 'pct-cell pct-disabled';
-                    td.appendChild(el);
-
+                    // (A) habit didn't exist yet
+                    td.innerHTML = '<input type="checkbox" disabled>';
                 } else if (d > endDay) {
-                    // (B) past end_date
+                    // (B) past the end_date for this month
                     td.classList.add('cell-ended');
-                    const el = document.createElement('div');
-                    el.className = 'pct-cell pct-disabled';
-                    td.appendChild(el);
-
+                    td.innerHTML = '<input type="checkbox" disabled>';
                 } else {
-                    // (C) normal interactive cell
-                    const cellPct = completions[`${habit.id}-${d}`] || 0;
-                    const el = buildPctCell(cellPct);
-                    td.appendChild(el);
-                    td.onclick = (e) => {
-                        e.stopPropagation();
-                        selectColumn(d);
-                        openPctPopover(habit.id, d, completions[`${habit.id}-${d}`] || 0, td);
-                    };
+                    // (C) normal day
+                    const checked = completions[`${habit.id}-${d}`] ? 'checked' : '';
+                    td.innerHTML = `<input type="checkbox" ${checked}
+                        onchange="toggleCell('${habit.id}', ${d})"
+                        onclick="selectColumn(${d})">`;
                 }
                 tr.appendChild(td);
             }
@@ -2751,22 +2382,6 @@
                 <button class="action-btn delete-btn" onclick="openDeleteHabitModal('${habit.id}')">Del</button>`;
             tr.appendChild(actionsTd);
             tbody.appendChild(tr);
-        }
-
-        // ── Build a single percentage cell element ────────────────────────────────
-        function buildPctCell(pct) {
-            const el = document.createElement('div');
-            if (pct <= 0) {
-                el.className = 'pct-cell';
-            } else if (pct >= 100) {
-                el.className = 'pct-cell pct-full';
-                el.innerHTML = '<span>✓</span>';
-            } else {
-                el.className = 'pct-cell pct-partial';
-                el.style.setProperty('--fill', pct + '%');
-                el.innerHTML = `<span>${pct}</span>`;
-            }
-            return el;
         }
 
         // ─── Drag and Drop ─────────────────────────────────────────────────────────
@@ -2863,28 +2478,28 @@
         function updateAnalytics() {
             try {
                 const stats = habits.map(habit => {
-                    const createdDate = new Date(habit.created_at);
-                    const createdDay  = createdDate.getDate();
-                    const isThisMonth = createdDate.getFullYear() === selectedYear
-                                     && createdDate.getMonth()    === selectedMonth;
-                    const startDay    = isThisMonth ? createdDay : 1;
+                    const createdDate  = new Date(habit.created_at);
+                    const createdDay   = createdDate.getDate();
+                    const isThisMonth  = createdDate.getFullYear() === selectedYear && createdDate.getMonth() === selectedMonth;
+                    const startDay     = isThisMonth ? createdDay : 1;
 
-                    // Respect end_date
+                    // Respect end_date: only count days up to endDay
                     let endDay = daysInMonth;
                     if (habit.end_date) {
                         const ed = new Date(habit.end_date + 'T00:00:00');
                         if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth) {
                             endDay = ed.getDate();
                         }
+                        // Future end_date → endDay stays daysInMonth
                     }
 
                     const validDays = Math.max(0, endDay - startDay + 1);
-                    let score = 0;
+                    let count = 0;
                     for (let d = startDay; d <= endDay; d++) {
-                        score += (completions[`${habit.id}-${d}`] || 0) / 100;
+                        if (completions[`${habit.id}-${d}`]) count++;
                     }
-                    const pct = validDays > 0 ? (score / validDays) * 100 : 0;
-                    return { name: habit.name, score, pct, validDays };
+                    const pct = validDays > 0 ? Math.round((count / validDays) * 100) : 0;
+                    return { name: habit.name, count, pct, validDays };
                 });
 
                 if (stats.length === 0) {
@@ -2894,11 +2509,9 @@
                     return;
                 }
 
-                const totalScore    = stats.reduce((s, x) => s + x.score, 0);
+                const totalDone     = stats.reduce((s, x) => s + x.count, 0);
                 const totalPossible = stats.reduce((s, x) => s + x.validDays, 0);
-                const overallPct    = totalPossible > 0
-                    ? ((totalScore / totalPossible) * 100).toFixed(1)
-                    : 0;
+                const overallPct    = totalPossible > 0 ? ((totalDone / totalPossible) * 100).toFixed(1) : 0;
 
                 document.getElementById('overallVal').textContent = overallPct + '%';
 
@@ -2906,28 +2519,32 @@
                 const best   = sorted[0];
                 const worst  = sorted[sorted.length - 1];
 
-                document.getElementById('bestName').textContent   = best.name;
-                document.getElementById('bestScore').textContent  = `${best.pct.toFixed(1)}% avg`;
+                document.getElementById('bestName').textContent  = best.name;
+                document.getElementById('bestScore').textContent = `${best.pct}% complete`;
                 document.getElementById('worstName').textContent  = worst.name;
-                document.getElementById('worstScore').textContent = `${worst.pct.toFixed(1)}% avg`;
+                document.getElementById('worstScore').textContent = `${worst.pct}% complete`;
 
-                // Line chart — per-day average completion %
+                // Line chart — per-day completion %.
+                // Only count a habit on day D if: it had started by day D AND hasn't ended before day D.
                 const dailyPerf = Array.from({ length: daysInMonth }, (_, i) => {
                     const day = i + 1;
                     const dayHabits = habits.filter(h => {
                         const cd = new Date(h.created_at);
-                        if (cd.getFullYear() === selectedYear && cd.getMonth() === selectedMonth
-                                && day < cd.getDate()) return false;
+                        // Exclude if not yet created on this day this month
+                        if (cd.getFullYear() === selectedYear && cd.getMonth() === selectedMonth && day < cd.getDate()) {
+                            return false;
+                        }
+                        // Exclude if end_date is set and this day is past it
                         if (h.end_date) {
                             const ed = new Date(h.end_date + 'T00:00:00');
-                            if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth
-                                    && day > ed.getDate()) return false;
+                            if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth && day > ed.getDate()) {
+                                return false;
+                            }
                         }
                         return true;
                     });
-                    if (dayHabits.length === 0) return 0;
-                    const total = dayHabits.reduce((sum, h) => sum + (completions[`${h.id}-${day}`] || 0), 0);
-                    return total / dayHabits.length;
+                    const completed = dayHabits.filter(h => completions[`${h.id}-${day}`]).length;
+                    return dayHabits.length > 0 ? (completed / dayHabits.length) * 100 : 0;
                 });
 
                 if (charts.lineChart) charts.lineChart.destroy();
@@ -2947,10 +2564,7 @@
                 charts.pieChart = new Chart(document.getElementById('pieChart'), {
                     type: 'doughnut',
                     data: { labels: ['Done','Left'], datasets: [{
-                        data: [
-                            parseFloat(totalScore.toFixed(2)),
-                            parseFloat((totalPossible - totalScore).toFixed(2))
-                        ],
+                        data: [totalDone, totalPossible - totalDone],
                         backgroundColor: ['#10b981','#f1f5f9'], borderWidth: 0 }] },
                     options: { maintainAspectRatio: false, cutout: '70%',
                         plugins: { legend: { position: 'bottom' } } }
@@ -2960,13 +2574,9 @@
                 if (charts.bestChart) charts.bestChart.destroy();
                 charts.bestChart = new Chart(document.getElementById('bestChart'), {
                     type: 'bar',
-                    data: {
-                        labels: top5Best.map(s => s.name.length > 15 ? s.name.substring(0,15)+'…' : s.name),
-                        datasets: [{ data: top5Best.map(s => parseFloat(s.pct.toFixed(1))),
-                                     backgroundColor: '#10b981', borderRadius: 4 }]
-                    },
-                    options: { indexAxis: 'y', maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
+                    data: { labels: top5Best.map(s => s.name.length > 15 ? s.name.substring(0,15)+'…' : s.name),
+                        datasets: [{ data: top5Best.map(s => s.pct), backgroundColor: '#10b981', borderRadius: 4 }] },
+                    options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } },
                         scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } } } }
                 });
 
@@ -2974,13 +2584,9 @@
                 if (charts.worstChart) charts.worstChart.destroy();
                 charts.worstChart = new Chart(document.getElementById('worstChart'), {
                     type: 'bar',
-                    data: {
-                        labels: top5Worst.map(s => s.name.length > 15 ? s.name.substring(0,15)+'…' : s.name),
-                        datasets: [{ data: top5Worst.map(s => parseFloat(s.pct.toFixed(1))),
-                                     backgroundColor: '#ef4444', borderRadius: 4 }]
-                    },
-                    options: { indexAxis: 'y', maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
+                    data: { labels: top5Worst.map(s => s.name.length > 15 ? s.name.substring(0,15)+'…' : s.name),
+                        datasets: [{ data: top5Worst.map(s => s.pct), backgroundColor: '#ef4444', borderRadius: 4 }] },
+                    options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } },
                         scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } } } }
                 });
             } catch (e) { console.error('Analytics error:', e); }
@@ -2999,80 +2605,88 @@
 
         async function updateWeeklyAnalytics() {
             try {
-                // Build the 4 month windows we care about (current month + 3 prior)
                 const now = new Date();
                 const months = Array.from({ length: 4 }, (_, i) => {
                     const d = new Date(now.getFullYear(), now.getMonth() - (3 - i), 1);
                     return { year: d.getFullYear(), month: d.getMonth() };
-                }); // oldest → newest
+                });
 
-                // Date range: start of oldest month → end of current month
                 const rangeStart = new Date(months[0].year, months[0].month, 1);
                 const rangeEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                const rangeStartStr = toDateStr(rangeStart);
+                const rangeEndStr   = toDateStr(rangeEnd);
 
-                // Fetch all completions in this range
+                // Fetch all completions in the range
                 const { data: compData, error: compErr } = await supabaseClient
                     .from('weekly_task_completions')
                     .select('task_id, completion_date')
                     .eq('user_id', currentUser.id)
-                    .gte('completion_date', toDateStr(rangeStart))
-                    .lte('completion_date', toDateStr(rangeEnd));
+                    .gte('completion_date', rangeStartStr)
+                    .lte('completion_date', rangeEndStr);
 
-                if (compErr) {
-                    console.warn('Weekly analytics fetch failed:', compErr.message);
-                    return;
-                }
+                if (compErr) { console.warn('Weekly analytics fetch failed:', compErr.message); return; }
 
-                const taskCount = weeklyTasks.length;
+                // Fetch ALL task definitions in the range (per-week tasks have week_start)
+                // This gives us the correct denominator per week.
+                const { data: taskData, error: taskErr } = await supabaseClient
+                    .from('weekly_tasks')
+                    .select('id, week_start')
+                    .eq('user_id', currentUser.id)
+                    .gte('week_start', rangeStartStr)
+                    .lte('week_start', rangeEndStr);
 
-                // Helper: how many Mondays fall in a given year/month?
-                function mondaysInMonth(year, month) {
-                    const first = new Date(year, month, 1);
-                    const last  = new Date(year, month + 1, 0);
-                    let count = 0;
-                    for (let d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
-                        if (d.getDay() === 1) count++; // Monday
-                    }
-                    return count;
-                }
+                // Build: weekStr → taskCount (how many tasks existed that week)
+                const taskCountByWeek = {};
+                (taskData || []).forEach(t => {
+                    if (!t.week_start) return;
+                    taskCountByWeek[t.week_start] = (taskCountByWeek[t.week_start] || 0) + 1;
+                });
 
-                // Helper: which year/month does a completion_date Monday belong to?
+                // Helper: month key from a date string
                 function monthKey(dateStr) {
                     const d = new Date(dateStr + 'T00:00:00');
                     return `${d.getFullYear()}-${d.getMonth()}`;
                 }
 
-                // Count completions per month
-                const doneCounts = {}; // "YYYY-M" → count
-                (compData || []).forEach(c => {
-                    const key = monthKey(c.completion_date);
-                    doneCounts[key] = (doneCounts[key] || 0) + 1;
+                // Sum possible completions per month:
+                // For each week whose Monday is in that month, add its task count.
+                const possibleByMonth = {};
+                Object.entries(taskCountByWeek).forEach(([ws, count]) => {
+                    const mk = monthKey(ws);
+                    possibleByMonth[mk] = (possibleByMonth[mk] || 0) + count;
                 });
 
-                // Build per-month stats
+                // Count actual completions per month (keyed by task_id's week → month)
+                // We need to join: task_id → week_start → month
+                const taskWeekMap = {};
+                (taskData || []).forEach(t => { if (t.week_start) taskWeekMap[t.id] = t.week_start; });
+
+                const doneByMonth = {};
+                (compData || []).forEach(c => {
+                    const ws = taskWeekMap[c.task_id] || c.completion_date;
+                    const mk = monthKey(ws);
+                    doneByMonth[mk] = (doneByMonth[mk] || 0) + 1;
+                });
+
                 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                 const monthStats = months.map(({ year, month }) => {
-                    const slots    = mondaysInMonth(year, month);
-                    const possible = slots * taskCount;
-                    const done     = doneCounts[`${year}-${month}`] || 0;
+                    const mk       = `${year}-${month}`;
+                    const possible = possibleByMonth[mk] || 0;
+                    const done     = doneByMonth[mk]     || 0;
                     const missed   = Math.max(0, possible - done);
                     const pct      = possible > 0 ? Math.round((done / possible) * 100) : 0;
                     return { label: MONTH_NAMES[month], done, missed, possible, pct };
                 });
 
-                // Current month (last in array)
                 const cur = monthStats[monthStats.length - 1];
 
-                // ── Stat cards ──────────────────────────────────────────────────
-                document.getElementById('wtDoneVal').textContent   = taskCount === 0 ? '—' : cur.done;
-                document.getElementById('wtMissedVal').textContent = taskCount === 0 ? '—' : cur.missed;
+                document.getElementById('wtDoneVal').textContent   = cur.possible === 0 ? '—' : cur.done;
+                document.getElementById('wtMissedVal').textContent = cur.possible === 0 ? '—' : cur.missed;
 
-                if (taskCount === 0) return; // no tasks → skip charts
+                if (cur.possible === 0) return;
 
-                // ── Donut: this month done vs missed ────────────────────────────
                 if (charts.wtDonutChart) charts.wtDonutChart.destroy();
-                charts.wtDonutChart = new Chart(
-                    document.getElementById('wtDonutChart'), {
+                charts.wtDonutChart = new Chart(document.getElementById('wtDonutChart'), {
                     type: 'doughnut',
                     data: {
                         labels: ['Done', 'Missed'],
@@ -3084,29 +2698,22 @@
                         }]
                     },
                     options: {
-                        maintainAspectRatio: false,
-                        cutout: '70%',
+                        maintainAspectRatio: false, cutout: '70%',
                         plugins: {
                             legend: { position: 'bottom', labels: { font: { size: 10 } } },
-                            tooltip: {
-                                callbacks: {
-                                    label: ctx => ` ${ctx.parsed} week slot${ctx.parsed !== 1 ? 's' : ''}`
-                                }
-                            }
+                            tooltip: { callbacks: { label: ctx => ` ${ctx.parsed} task${ctx.parsed !== 1 ? 's' : ''}` } }
                         }
                     }
                 });
 
-                // ── Bar: last 4 months % completion ────────────────────────────
                 if (charts.wtBarChart) charts.wtBarChart.destroy();
-                charts.wtBarChart = new Chart(
-                    document.getElementById('wtBarChart'), {
+                charts.wtBarChart = new Chart(document.getElementById('wtBarChart'), {
                     type: 'bar',
                     data: {
                         labels: monthStats.map(m => m.label),
                         datasets: [{
                             label: '% Done',
-                            data:  monthStats.map(m => m.pct),
+                            data: monthStats.map(m => m.pct),
                             backgroundColor: monthStats.map((m, i) =>
                                 i === monthStats.length - 1 ? '#8b5cf6' : '#c4b5fd'
                             ),
@@ -3199,11 +2806,20 @@
                 updateWeekLabel();
                 const weekStartStr = toDateStr(weekStart);
 
-                // Fetch task list (ordered)
+                // ── Toggle UI controls based on week type ──────────────────────────
+                const isPast    = !isCurrentWeek(weekStart) && !isFutureWeek(weekStart);
+                const isCurrent = isCurrentWeek(weekStart);
+                const addBtn    = document.getElementById('wtAddTaskBtn');
+                const notice    = document.getElementById('wtArchivedNotice');
+                if (addBtn)  addBtn.style.display   = isPast ? 'none' : '';
+                if (notice)  notice.style.display   = isPast ? '' : 'none';
+
+                // Fetch tasks scoped ONLY to the currently viewed week
                 const { data: taskData, error: taskErr } = await supabaseClient
                     .from('weekly_tasks')
                     .select('*')
                     .eq('user_id', currentUser.id)
+                    .eq('week_start', weekStartStr)          // ← per-week filter
                     .order('position', { ascending: true, nullsFirst: false });
 
                 if (taskErr) {
@@ -3215,7 +2831,6 @@
                 weeklyTasks = taskData || [];
 
                 // Fetch completions for this specific week only
-                // completion_date stores the Monday (week_start) of that week
                 const { data: compData, error: compErr } = await supabaseClient
                     .from('weekly_task_completions')
                     .select('task_id, completion_date')
@@ -3230,7 +2845,7 @@
                 }
 
                 renderWeeklyTable();
-                updateWeeklyAnalytics(); // ← sidebar charts
+                updateWeeklyAnalytics();
             } catch (e) {
                 console.error('loadWeeklyTasks error:', e);
             }
@@ -3242,44 +2857,54 @@
             if (!body) return;
             body.innerHTML = '';
 
-            const currentWeek = isCurrentWeek(weekStart);
-            const futureWeek  = isFutureWeek(weekStart);
+            const currentWeek  = isCurrentWeek(weekStart);
+            const futureWeek   = isFutureWeek(weekStart);
+            const pastWeek     = !currentWeek && !futureWeek;
             const weekStartStr = toDateStr(weekStart);
 
             if (weeklyTasks.length === 0) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
                 td.colSpan = 3;
-                td.innerHTML = `<div class="wt-empty">
-                    <span class="wt-empty-icon">📋</span>
-                    No weekly tasks yet — click <strong>+ Add Task</strong> to add one.
-                </div>`;
+                if (pastWeek) {
+                    td.innerHTML = `<div class="wt-empty">
+                        <span class="wt-empty-icon">📂</span>
+                        No tasks were recorded for this week.
+                    </div>`;
+                } else {
+                    td.innerHTML = `<div class="wt-empty">
+                        <span class="wt-empty-icon">📋</span>
+                        No tasks this week — click <strong>+ Add Task</strong> to add one.
+                    </div>`;
+                }
                 tr.appendChild(td);
                 body.appendChild(tr);
                 return;
             }
 
             weeklyTasks.forEach(task => {
-                const done    = weeklyCompletions[task.id] || false;
-                const tr      = document.createElement('tr');
-                tr.className  = 'wt-draggable';
+                const done = weeklyCompletions[task.id] || false;
+                const tr   = document.createElement('tr');
                 tr.dataset.taskId = task.id;
 
-                // Task name cell (with drag handle)
+                // Only allow drag-and-drop on current/future weeks
+                if (!pastWeek) tr.className = 'wt-draggable';
+                if (pastWeek)  tr.classList.add('wt-row-past');
+
+                // Task name cell
                 const tdName = document.createElement('td');
                 tdName.className = 'wt-task-col';
-                const dragHandle = typeof Sortable !== 'undefined'
+                const dragHandle = (!pastWeek && typeof Sortable !== 'undefined')
                     ? '<span class="drag-handle" style="margin-right:8px;color:var(--text-sub);">☰</span>'
                     : '';
                 tdName.innerHTML = `${dragHandle}<span title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</span>`;
                 tr.appendChild(tdName);
 
-                // Status cell — checkbox for current week, badge for past/future
+                // Status cell
                 const tdDone = document.createElement('td');
                 tdDone.className = 'wt-cb-cell';
 
                 if (currentWeek) {
-                    // Editable checkbox
                     const cb = document.createElement('input');
                     cb.type     = 'checkbox';
                     cb.checked  = done;
@@ -3288,26 +2913,32 @@
                 } else if (futureWeek) {
                     tdDone.innerHTML = '<span class="wt-done-badge future">—</span>';
                 } else {
-                    // Past week: read-only ✓ / ✗
+                    // Past week: read-only badge
                     tdDone.innerHTML = done
                         ? '<span class="wt-done-badge done">✓ Done</span>'
                         : '<span class="wt-done-badge missed">✗ Missed</span>';
                 }
                 tr.appendChild(tdDone);
 
-                // Actions cell (edit + delete — always visible)
+                // Actions cell
                 const tdAct = document.createElement('td');
                 tdAct.className = 'wt-act-col';
-                tdAct.innerHTML = `
-                    <button class="action-btn edit-btn" onclick="openWeeklyTaskModal('${task.id}')">Edit</button>
-                    <button class="action-btn delete-btn" onclick="deleteWeeklyTask('${task.id}')">Del</button>`;
+                if (!pastWeek) {
+                    // Current or future: show edit + delete
+                    tdAct.innerHTML = `
+                        <button class="action-btn edit-btn" onclick="openWeeklyTaskModal('${task.id}')">Edit</button>
+                        <button class="action-btn delete-btn" onclick="deleteWeeklyTask('${task.id}')">Del</button>`;
+                } else {
+                    // Past: no actions (archived)
+                    tdAct.innerHTML = '<span style="font-size:9px;color:var(--text-sub);">Archived</span>';
+                }
                 tr.appendChild(tdAct);
 
                 body.appendChild(tr);
             });
 
-            // Init drag-and-drop on weekly table
-            initWeeklyDragAndDrop();
+            // Drag-and-drop only on editable weeks
+            if (!pastWeek) initWeeklyDragAndDrop();
         }
 
         // ── Drag-and-drop for weekly tasks ────────────────────────────────────────
@@ -3380,65 +3011,83 @@
                 '<p class="history-empty">Loading…</p>';
 
             try {
+                // Fetch ALL task definitions for this user (all weeks)
+                const { data: allTasks, error: taskErr } = await supabaseClient
+                    .from('weekly_tasks')
+                    .select('id, name, week_start')
+                    .eq('user_id', currentUser.id)
+                    .order('week_start', { ascending: false });
+
+                if (taskErr) throw taskErr;
+
                 // Fetch ALL completions for this user
                 const { data: allComps, error: compErr } = await supabaseClient
                     .from('weekly_task_completions')
                     .select('task_id, completion_date')
-                    .eq('user_id', currentUser.id)
-                    .order('completion_date', { ascending: false });
+                    .eq('user_id', currentUser.id);
 
                 if (compErr) throw compErr;
 
-                // Fetch all tasks (need names)
-                const { data: allTasks, error: taskErr } = await supabaseClient
-                    .from('weekly_tasks')
-                    .select('id, name, position')
-                    .eq('user_id', currentUser.id)
-                    .order('position', { ascending: true, nullsFirst: false });
-
-                if (taskErr) throw taskErr;
-
-                if (!allComps || allComps.length === 0) {
+                if (!allTasks || allTasks.length === 0) {
                     document.getElementById('historyContent').innerHTML =
-                        '<p class="history-empty">No completion history yet. Check off some tasks this week!</p>';
+                        '<p class="history-empty">No tasks have been recorded yet. Add some tasks this week to get started!</p>';
                     return;
                 }
 
-                // Collect unique weeks (sorted newest first)
-                const weekSet = [...new Set(allComps.map(c => c.completion_date))].sort().reverse();
+                // Build a completion lookup: task_id → true
+                const compSet = new Set((allComps || []).map(c => c.task_id));
 
-                // Build completion lookup: taskId → Set of weekStartStr
-                const lookup = {};
-                allComps.forEach(c => {
-                    if (!lookup[c.task_id]) lookup[c.task_id] = new Set();
-                    lookup[c.task_id].add(c.completion_date);
-                });
+                // Group tasks by their week_start (most recent first)
+                // For legacy tasks without week_start, group under the current week
+                const currentWeekStr = toDateStr(getMonday(new Date()));
+                const weekGroups = {}; // weekStr → [task, ...]
 
-                // Build table
-                let html = '<div style="overflow-x:auto"><table class="history-table"><thead><tr>';
-                html += '<th class="ht-week-col">Week</th>';
                 (allTasks || []).forEach(t => {
-                    html += `<th title="${escapeHtml(t.name)}">${escapeHtml(t.name.length > 18 ? t.name.substring(0,17)+'…' : t.name)}</th>`;
+                    const ws = t.week_start || currentWeekStr;
+                    if (!weekGroups[ws]) weekGroups[ws] = [];
+                    weekGroups[ws].push(t);
                 });
-                html += '</tr></thead><tbody>';
 
-                weekSet.forEach(ws => {
+                // Sort weeks newest-first
+                const sortedWeeks = Object.keys(weekGroups).sort().reverse();
+
+                let html = '';
+                sortedWeeks.forEach(ws => {
                     const monday = new Date(ws + 'T00:00:00');
-                    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-                    const label  = `${monday.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${sunday.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
-                    const isNow  = ws === toDateStr(getMonday(new Date()));
+                    const sunday = new Date(monday);
+                    sunday.setDate(monday.getDate() + 6);
+                    const label = `${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                    const isNow = ws === currentWeekStr;
 
-                    html += `<tr><td class="ht-week-col">${label}${isNow ? ' <strong style="color:var(--success);font-size:9px;">NOW</strong>' : ''}</td>`;
-                    (allTasks || []).forEach(t => {
-                        const done = lookup[t.id] && lookup[t.id].has(ws);
-                        html += done
-                            ? '<td><span class="ht-check">✓</span></td>'
-                            : '<td><span class="ht-cross">—</span></td>';
-                    });
-                    html += '</tr>';
+                    const tasks = weekGroups[ws];
+                    const doneCount   = tasks.filter(t => compSet.has(t.id)).length;
+                    const totalCount  = tasks.length;
+
+                    html += `<div class="hw-week-block">
+                        <div class="hw-week-header">
+                            <span>${label}</span>
+                            ${isNow ? '<span class="hw-now-badge">This Week</span>' : ''}
+                            <span style="margin-left:auto;font-size:10px;color:var(--text-sub);font-weight:600;">
+                                ${doneCount}/${totalCount} done
+                            </span>
+                        </div>
+                        <div class="hw-task-list">`;
+
+                    if (tasks.length === 0) {
+                        html += `<div class="hw-task-row"><span style="color:var(--text-sub);font-size:11px;">No tasks this week.</span></div>`;
+                    } else {
+                        tasks.forEach(t => {
+                            const done = compSet.has(t.id);
+                            html += `<div class="hw-task-row">
+                                <span>${done ? '<span class="hw-check">✓</span>' : '<span class="hw-cross">—</span>'}</span>
+                                <span class="hw-task-name${done ? '' : ' missed'}">${escapeHtml(t.name)}</span>
+                            </div>`;
+                        });
+                    }
+
+                    html += `</div></div>`;
                 });
 
-                html += '</tbody></table></div>';
                 document.getElementById('historyContent').innerHTML = html;
 
             } catch (e) {
@@ -3478,7 +3127,10 @@
                 const name = document.getElementById('weeklyTaskName').value.trim();
                 if (!name) { alert('Please enter a task name'); return; }
 
+                const weekStartStr = toDateStr(weekStart);
+
                 if (editingWeeklyTaskId) {
+                    // Editing: only the name changes — week_start stays the same
                     const { error } = await supabaseClient
                         .from('weekly_tasks')
                         .update({ name })
@@ -3486,11 +3138,13 @@
                         .eq('user_id', currentUser.id);
                     if (error) throw error;
                 } else {
+                    // New task: scoped to the currently viewed week
                     const maxPos = weeklyTasks.length > 0
                         ? Math.max(...weeklyTasks.map(t => t.position ?? 0)) : -1;
                     const { error } = await supabaseClient
                         .from('weekly_tasks')
-                        .insert({ name, user_id: currentUser.id, position: maxPos + 1 });
+                        .insert({ name, user_id: currentUser.id, position: maxPos + 1,
+                                  week_start: weekStartStr });  // ← scoped to this week
                     if (error) throw error;
                 }
                 closeWeeklyTaskModal();
@@ -3499,7 +3153,9 @@
         }
 
         async function deleteWeeklyTask(taskId) {
-            if (!confirm('Delete this weekly task? All its history will be removed too.')) return;
+            // Since tasks are now scoped per-week, deleting removes only this week's task.
+            // Past weeks have their own separate task rows, so history is unaffected.
+            if (!confirm('Remove this task from this week? Past history is unaffected.')) return;
             try {
                 const { error } = await supabaseClient
                     .from('weekly_tasks').delete()
