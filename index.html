@@ -1301,7 +1301,49 @@
         .ht-cross  { color: #d1d5db; font-size: 14px; }
         .history-empty { text-align: center; padding: 24px; color: var(--text-sub); font-size: 13px; }
 
+        /* ── Weekly header mobile scroll fix ─────────────────────────────────
+         * On screens ≤ 768 px, the controls row becomes a horizontal scroll
+         * strip so every button stays reachable. Desktop layout is unchanged.
+         * ──────────────────────────────────────────────────────────────────── */
+        .wt-header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            /* desktop: stays as-is */
+        }
+        @media (max-width: 768px) {
+            .wt-header-controls {
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;          /* Firefox */
+                padding-bottom: 4px;
+                /* fade-out right edge as a scroll hint */
+                mask-image: linear-gradient(to right, black 85%, transparent 100%);
+                -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+            }
+            .wt-header-controls::-webkit-scrollbar { display: none; }
+            /* Keep all children on one line and touch-friendly */
+            .wt-header-controls > * { flex-shrink: 0; }
+            .week-nav { flex-shrink: 0; }
+        }
 
+        /* Weekly task percentage cell
+         * Centred wrapper inside the green wt-cb-cell — reuses .pct-cell exactly */
+        .wt-pct-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        /* Past-week percentage badge */
+        .wt-done-badge.partial {
+            background: #fef3c7;
+            color: #78350f;
+            border: 1px solid #fde68a;
+        }
 
         /* Collapsed section — hide its habit rows */
         .habit-row-hidden { display: none !important; }
@@ -1493,7 +1535,7 @@
             <div class="weekly-section">
                 <div class="section-title">
                     <span>Weekly Tasks<span class="wt-archived-notice" id="wtArchivedNotice" style="display:none;">Read-only</span></span>
-                    <div style="display:flex; gap:8px; align-items:center;">
+                    <div class="wt-header-controls">
                         <!-- Week navigation -->
                         <div class="week-nav">
                             <button class="week-nav-btn" onclick="changeWeek(-1)">←</button>
@@ -1712,10 +1754,14 @@
         // Popover state
         let _popHabitId = null;
         let _popDay     = null;
+        // Weekly-task popover routing
+        let _popMode           = 'daily';  // 'daily' | 'weekly'
+        let _popWeeklyTaskId   = null;
+        let _popWeekStr        = null;
 
         // ── Weekly tracker state ─────────────────────────────────────────────────
         let weeklyTasks        = [];
-        let weeklyCompletions  = {};   // key: taskId → true (for the currently viewed week)
+        let weeklyCompletions  = {};   // key: taskId → INTEGER 1–100; absent = 0% (no row)
         let weekStart          = getMonday(new Date()); // Monday of the visible week
         let editingWeeklyTaskId = null;
 
@@ -2036,8 +2082,12 @@
         // ─── Popover ───────────────────────────────────────────────────────────────
 
         function openPctPopover(habitId, day, currentPct, tdEl) {
+            _popMode    = 'daily';   // ← set routing mode
             _popHabitId = habitId;
             _popDay     = day;
+            // Clear weekly state
+            _popWeeklyTaskId = null;
+            _popWeekStr      = null;
 
             const habit = habits.find(h => h.id === habitId);
             const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun',
@@ -2075,15 +2125,24 @@
 
         function closePctPopover() {
             document.getElementById('pctPopover').style.display = 'none';
-            _popHabitId = null;
-            _popDay     = null;
+            _popMode         = 'daily';
+            _popHabitId      = null;
+            _popDay          = null;
+            _popWeeklyTaskId = null;
+            _popWeekStr      = null;
         }
 
-        // Quick-button: apply and close
+        // Quick-button: apply and close — routes to daily or weekly based on _popMode
         function applyPct(pct) {
-            if (_popHabitId === null) return;
-            setCellPct(_popHabitId, _popDay, pct);
-            closePctPopover();
+            if (_popMode === 'weekly') {
+                if (_popWeeklyTaskId === null) return;
+                setWeeklyTaskPct(_popWeeklyTaskId, _popWeekStr, pct);
+                closePctPopover();
+            } else {
+                if (_popHabitId === null) return;
+                setCellPct(_popHabitId, _popDay, pct);
+                closePctPopover();
+            }
         }
 
         // Time calculator: apply when user clicks "Calculate & Apply"
@@ -3080,10 +3139,10 @@
                     .gte('week_start', rangeStartStr)
                     .lte('week_start', rangeEndStr);
 
-                // Fetch all completions in the range
+                // Fetch all completions in the range — now includes completion_percentage
                 const { data: compData, error: compErr } = await supabaseClient
                     .from('weekly_task_completions')
-                    .select('task_id, completion_date')
+                    .select('task_id, completion_date, completion_percentage')
                     .eq('user_id', currentUser.id)
                     .gte('completion_date', rangeStartStr)
                     .lte('completion_date', rangeEndStr);
@@ -3106,27 +3165,26 @@
                 });
 
                 // Sum possible completions per calendar month
-                // (each week contributes its own task count to the month it falls in)
                 const possibleByMonth = {};
                 Object.entries(tasksByWeek).forEach(([ws, cnt]) => {
                     const mk = monthKey(ws);
                     possibleByMonth[mk] = (possibleByMonth[mk] || 0) + cnt;
                 });
 
-                // Count actual completions per month
-                // (join via taskWeekMap to map task → week → month)
+                // Weighted done score per month: 50% task = 0.5 contribution
                 const doneByMonth = {};
                 (compData || []).forEach(c => {
-                    const ws = taskWeekMap[c.task_id] || c.completion_date;
-                    const mk = monthKey(ws);
-                    doneByMonth[mk] = (doneByMonth[mk] || 0) + 1;
+                    const ws  = taskWeekMap[c.task_id] || c.completion_date;
+                    const mk  = monthKey(ws);
+                    const pct = (c.completion_percentage || 100) / 100;   // 0.0–1.0
+                    doneByMonth[mk] = (doneByMonth[mk] || 0) + pct;
                 });
 
                 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                 const monthStats = months.map(({ year, month }) => {
                     const mk       = `${year}-${month}`;
                     const possible = possibleByMonth[mk] || 0;
-                    const done     = doneByMonth[mk]     || 0;
+                    const done     = doneByMonth[mk]     || 0;           // weighted 0.0–N
                     const missed   = Math.max(0, possible - done);
                     const pct      = possible > 0 ? Math.round((done / possible) * 100) : 0;
                     return { label: MONTH_NAMES[month], done, missed, possible, pct };
@@ -3134,8 +3192,11 @@
 
                 const cur = monthStats[monthStats.length - 1];
 
-                document.getElementById('wtDoneVal').textContent   = cur.possible === 0 ? '—' : cur.done;
-                document.getElementById('wtMissedVal').textContent = cur.possible === 0 ? '—' : cur.missed;
+                // Show weighted score rounded to 1 dp (e.g. "3.5 of 5")
+                const doneLabel   = cur.possible === 0 ? '—' : parseFloat(cur.done.toFixed(1));
+                const missedLabel = cur.possible === 0 ? '—' : parseFloat(cur.missed.toFixed(1));
+                document.getElementById('wtDoneVal').textContent   = doneLabel;
+                document.getElementById('wtMissedVal').textContent = missedLabel;
 
                 if (cur.possible === 0) return;
 
@@ -3145,7 +3206,10 @@
                     data: {
                         labels: ['Done', 'Missed'],
                         datasets: [{
-                            data: [cur.done, Math.max(0, cur.missed)],
+                            data: [
+                                parseFloat(cur.done.toFixed(2)),
+                                parseFloat(cur.missed.toFixed(2))
+                            ],
                             backgroundColor: ['#10b981', '#fee2e2'],
                             borderColor:     ['#059669', '#fca5a5'],
                             borderWidth: 1
@@ -3155,7 +3219,7 @@
                         maintainAspectRatio: false, cutout: '70%',
                         plugins: {
                             legend: { position: 'bottom', labels: { font: { size: 10 } } },
-                            tooltip: { callbacks: { label: ctx => ` ${ctx.parsed} task${ctx.parsed !== 1 ? 's' : ''}` } }
+                            tooltip: { callbacks: { label: ctx => ` ${parseFloat(ctx.parsed.toFixed(1))} task equiv.` } }
                         }
                     }
                 });
@@ -3283,17 +3347,18 @@
                 }
                 weeklyTasks = taskData || [];
 
-                // Fetch completions for this specific week only
+                // Fetch completions for this specific week only — now includes percentage
                 const { data: compData, error: compErr } = await supabaseClient
                     .from('weekly_task_completions')
-                    .select('task_id, completion_date')
+                    .select('task_id, completion_date, completion_percentage')
                     .eq('user_id', currentUser.id)
                     .eq('completion_date', weekStartStr);
 
                 weeklyCompletions = {};
                 if (!compErr) {
                     (compData || []).forEach(c => {
-                        weeklyCompletions[c.task_id] = true;
+                        // Store the actual percentage (old rows without column → default 100)
+                        weeklyCompletions[c.task_id] = c.completion_percentage || 100;
                     });
                 }
 
@@ -3328,7 +3393,8 @@
             }
 
             weeklyTasks.forEach(task => {
-                const done = weeklyCompletions[task.id] || false;
+                const pct  = weeklyCompletions[task.id] || 0;   // 0–100
+                const done = pct >= 100;
                 const tr   = document.createElement('tr');
                 tr.dataset.taskId = task.id;
 
@@ -3345,23 +3411,31 @@
                 tdName.innerHTML = `${dragHandle}<span title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</span>`;
                 tr.appendChild(tdName);
 
-                // Status cell — checkbox for current week, badge for past/future
+                // Status cell
                 const tdDone = document.createElement('td');
                 tdDone.className = 'wt-cb-cell';
 
                 if (currentWeek) {
-                    const cb = document.createElement('input');
-                    cb.type     = 'checkbox';
-                    cb.checked  = done;
-                    cb.onchange = () => toggleWeeklyTask(task.id, weekStartStr, cb.checked);
-                    tdDone.appendChild(cb);
+                    // Interactive pct-cell — same design as daily habits
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'wt-pct-wrapper';
+                    wrapper.appendChild(buildPctCell(pct));
+                    wrapper.onclick = (e) => {
+                        e.stopPropagation();
+                        openWeeklyPctPopover(task.id, weekStartStr, pct, tdDone);
+                    };
+                    tdDone.appendChild(wrapper);
                 } else if (futureWeek) {
                     tdDone.innerHTML = '<span class="wt-done-badge future">—</span>';
                 } else {
-                    // Past week: read-only badge
-                    tdDone.innerHTML = done
-                        ? '<span class="wt-done-badge done">✓ Done</span>'
-                        : '<span class="wt-done-badge missed">✗ Missed</span>';
+                    // Past week: read-only percentage badge
+                    if (pct >= 100) {
+                        tdDone.innerHTML = '<span class="wt-done-badge done">✓ Done</span>';
+                    } else if (pct > 0) {
+                        tdDone.innerHTML = `<span class="wt-done-badge partial">${pct}%</span>`;
+                    } else {
+                        tdDone.innerHTML = '<span class="wt-done-badge missed">✗ Missed</span>';
+                    }
                 }
                 tr.appendChild(tdDone);
 
@@ -3415,36 +3489,80 @@
             });
         }
 
-        // ── Toggle a weekly completion (auto-saves) ───────────────────────────────
-        async function toggleWeeklyTask(taskId, weekStartStr, newState) {
+        // ── Set a weekly task completion percentage (auto-saves) ──────────────────
+        async function setWeeklyTaskPct(taskId, weekStartStr, pct) {
+            pct = Math.max(0, Math.min(100, Math.round(pct)));
+
             // Optimistic update
-            if (newState) weeklyCompletions[taskId] = true;
-            else          delete weeklyCompletions[taskId];
+            if (pct === 0) { delete weeklyCompletions[taskId]; }
+            else           { weeklyCompletions[taskId] = pct; }
             renderWeeklyTable();
 
             try {
-                if (newState) {
+                // Delete any existing completion row first (clean-slate approach)
+                await supabaseClient
+                    .from('weekly_task_completions')
+                    .delete()
+                    .eq('task_id', taskId)
+                    .eq('completion_date', weekStartStr)
+                    .eq('user_id', currentUser.id);
+
+                // Re-insert if non-zero
+                if (pct > 0) {
                     const { error } = await supabaseClient
                         .from('weekly_task_completions')
-                        .insert({ task_id: taskId, user_id: currentUser.id, completion_date: weekStartStr });
-                    if (error && error.code !== '23505') throw error;
-                } else {
-                    const { error } = await supabaseClient
-                        .from('weekly_task_completions')
-                        .delete()
-                        .eq('task_id', taskId)
-                        .eq('completion_date', weekStartStr)
-                        .eq('user_id', currentUser.id);
+                        .insert({ task_id: taskId, user_id: currentUser.id,
+                                  completion_date: weekStartStr, completion_percentage: pct });
                     if (error) throw error;
                 }
-                updateWeeklyAnalytics(); // keep sidebar charts in sync
+
+                updateWeeklyAnalytics();
             } catch (e) {
                 // Rollback on failure
-                if (newState) delete weeklyCompletions[taskId];
-                else          weeklyCompletions[taskId] = true;
+                if (pct === 0) { weeklyCompletions[taskId] = 100; } // restore default
+                else           { delete weeklyCompletions[taskId]; }
                 renderWeeklyTable();
                 alert('Failed to save: ' + e.message);
             }
+        }
+
+        // ── Open the shared popover for a weekly task ──────────────────────────────
+        function openWeeklyPctPopover(taskId, weekStartStr, currentPct, tdEl) {
+            _popMode         = 'weekly';
+            _popWeeklyTaskId = taskId;
+            _popWeekStr      = weekStartStr;
+            // Clear daily-habit popover state so there's no cross-contamination
+            _popHabitId = null;
+            _popDay     = null;
+
+            const task = weeklyTasks.find(t => t.id === taskId);
+            document.getElementById('popTitle').textContent =
+                `${task ? task.name : '–'}  ·  Week of ${weekStartStr}`;
+
+            document.getElementById('pctManualInput').value = currentPct;
+            document.getElementById('popActual').value  = '';
+            document.getElementById('popTarget').value  = '';
+
+            // Highlight matching quick button
+            document.querySelectorAll('.pop-qbtn[data-pct]').forEach(btn => {
+                btn.classList.toggle('is-active', parseInt(btn.dataset.pct) === currentPct);
+            });
+
+            // Position popover near the cell
+            const pop  = document.getElementById('pctPopover');
+            pop.style.display = 'block';
+            const rect = tdEl.getBoundingClientRect();
+            const pw   = pop.offsetWidth  || 230;
+            const ph   = pop.offsetHeight || 260;
+
+            let top  = rect.bottom + 5;
+            let left = rect.left - pw / 2 + rect.width / 2;
+            if (top + ph > window.innerHeight - 10) top = rect.top - ph - 5;
+            if (left + pw > window.innerWidth  - 8) left = window.innerWidth - pw - 8;
+            if (left < 8) left = 8;
+
+            pop.style.top  = top  + 'px';
+            pop.style.left = left + 'px';
         }
 
         // ── History modal ─────────────────────────────────────────────────────────
@@ -3463,10 +3581,10 @@
 
                 if (taskErr) throw taskErr;
 
-                // Fetch ALL completions for this user
+                // Fetch ALL completions for this user — now with percentage
                 const { data: allComps, error: compErr } = await supabaseClient
                     .from('weekly_task_completions')
-                    .select('task_id, completion_date')
+                    .select('task_id, completion_date, completion_percentage')
                     .eq('user_id', currentUser.id);
 
                 if (compErr) throw compErr;
@@ -3477,8 +3595,11 @@
                     return;
                 }
 
-                // Build a set of completed task IDs for fast lookup
-                const completedTaskIds = new Set((allComps || []).map(c => c.task_id));
+                // Build a map: task_id → completion_percentage (0 = no entry)
+                const compMap = {};
+                (allComps || []).forEach(c => {
+                    compMap[c.task_id] = c.completion_percentage || 100;
+                });
 
                 // Group tasks by their week_start (legacy tasks without week_start → current week)
                 const currentWeekStr = toDateStr(getMonday(new Date()));
@@ -3501,21 +3622,31 @@
                     const isNow = ws === currentWeekStr;
 
                     const tasks     = weekGroups[ws];
-                    const doneCount = tasks.filter(t => completedTaskIds.has(t.id)).length;
+                    // Weighted done count for this week
+                    const doneScore = tasks.reduce((sum, t) => sum + (compMap[t.id] ? compMap[t.id] / 100 : 0), 0);
+                    const doneLabel = `${parseFloat(doneScore.toFixed(1))}/${tasks.length} done`;
 
                     html += `<div class="hw-week-block">
                         <div class="hw-week-header">
                             <span>${label}</span>
                             ${isNow ? '<span class="hw-now-badge">This Week</span>' : ''}
-                            <span style="margin-left:auto;font-size:10px;color:var(--text-sub);font-weight:600;">${doneCount}/${tasks.length} done</span>
+                            <span style="margin-left:auto;font-size:10px;color:var(--text-sub);font-weight:600;">${doneLabel}</span>
                         </div>
                         <div class="hw-task-list">`;
 
                     tasks.forEach(t => {
-                        const done = completedTaskIds.has(t.id);
+                        const pct = compMap[t.id] || 0;
+                        let statusHtml;
+                        if (pct >= 100) {
+                            statusHtml = '<span class="hw-check">✓</span>';
+                        } else if (pct > 0) {
+                            statusHtml = `<span style="font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fde68a;padding:1px 5px;border-radius:4px;">${pct}%</span>`;
+                        } else {
+                            statusHtml = '<span class="hw-cross">—</span>';
+                        }
                         html += `<div class="hw-task-row">
-                            <span>${done ? '<span class="hw-check">✓</span>' : '<span class="hw-cross">—</span>'}</span>
-                            <span class="hw-task-name${done ? '' : ' missed'}">${escapeHtml(t.name)}</span>
+                            <span>${statusHtml}</span>
+                            <span class="hw-task-name${pct === 0 ? ' missed' : ''}">${escapeHtml(t.name)}</span>
                         </div>`;
                     });
 
