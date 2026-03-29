@@ -113,25 +113,98 @@
         .strength-strong { color: #10b981; }
 
         /* Main App */
-        .app-container { display: none; width: 100%; }
+        .app-container { display: none; width: 100%; overflow: hidden; }
         .app-container.active { display: flex; }
 
-        /* Sidebar */
+        /* ═══════════════════════════════════════════════════════════════════
+           SIDEBAR — PUSH LAYOUT
+           Desktop: normal flex child, width transition = content is pushed right.
+           Mobile:  position:fixed overlay so narrow screens don't get squeezed.
+           ═══════════════════════════════════════════════════════════════════ */
+
+        /* Outer shell — controls the space the sidebar occupies in the flex row */
         .sidebar {
-            width: 320px;
+            flex-shrink: 0;
+            overflow: hidden;          /* hides inner content while collapsing */
+            width: 0;                  /* collapsed default */
             background: var(--card);
             border-right: 1px solid #e2e8f0;
+            transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+            /* No position:fixed on desktop — lives in normal flow */
+        }
+        .sidebar.open { width: 300px; }
+
+        /* Inner wrapper — always 300 px wide so content never wraps during animation */
+        .sidebar-inner {
+            width: 300px;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             padding: 15px;
             overflow-y: auto;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.03);
-            flex-shrink: 0;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
         }
 
-        .sidebar-header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        /* ── Mobile overlay (≤ 768 px) ──────────────────────────────────────
+         * Switch to fixed so the sidebar doesn't squeeze the narrow viewport.
+         * A semi-transparent backdrop dims the content behind.
+         * ─────────────────────────────────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                height: 100vh;
+                width: 300px;          /* always 300px on mobile — hidden via transform */
+                transform: translateX(-100%);
+                transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                            box-shadow 0.32s ease;
+                z-index: 200;
+                overflow: visible;     /* allow inner scroll */
+            }
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 8px 0 40px rgba(0, 0, 0, 0.20);
+            }
+            .sidebar-inner {
+                width: 300px;
+            }
+        }
+
+        /* ── Mobile dim backdrop ─────────────────────────────────────────── */
+        #sidebarOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 199;
+            background: rgba(0, 0, 0, 0.45);
+        }
+        #sidebarOverlay.active { display: block; }
+
+        /* ── Sidebar header + close btn ──────────────────────────────────── */
+        .sidebar-header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
         .sidebar-header h1 { font-size: 18px; color: var(--primary); font-weight: 800; }
-        .sidebar-header p { font-size: 12px; color: var(--text-sub); }
+        .sidebar-header p  { font-size: 12px; color: var(--text-sub); }
+        .sidebar-close-btn {
+            width: 30px; height: 30px;
+            border: none;
+            border-radius: 7px;
+            background: #f1f5f9;
+            color: var(--text-sub);
+            font-size: 15px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.15s, color 0.15s;
+        }
+        .sidebar-close-btn:hover { background: #fee2e2; color: var(--danger); }
+
         .logout-btn {
             padding: 6px 12px;
             background: #fee2e2;
@@ -141,6 +214,92 @@
             font-size: 11px;
             cursor: pointer;
             font-weight: 600;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           MAIN CONTENT + TOP BAR TOGGLE BUTTON
+           ═══════════════════════════════════════════════════════════════════ */
+
+        .main-content {
+            flex: 1;
+            min-width: 0;            /* prevents flex child overflow */
+            padding: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Sticky top bar — sits at the very top of the scrollable content area.
+           The toggle button lives here: always in flow, never overlaps text.   */
+        .main-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--bg);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        /* The toggle pill button */
+        .topbar-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 13px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 9px;
+            background: #ffffff;
+            color: var(--text-main);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+            user-select: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .topbar-toggle:hover {
+            background: #f0f0ff;
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.12);
+        }
+        /* Active (sidebar open) state */
+        .topbar-toggle.is-open {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 3px 12px rgba(79, 70, 229, 0.30);
+        }
+        .topbar-toggle.is-open:hover {
+            background: #4338ca;
+            border-color: #4338ca;
+            color: #ffffff;
+        }
+        .topbar-toggle-icon {
+            font-size: 14px;
+            line-height: 1;
+        }
+        /* Thin separator after the toggle */
+        .topbar-sep {
+            width: 1px;
+            height: 20px;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        /* Actual scrollable content — wrapped so padding works below the sticky bar */
+        .main-scroll {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
         }
 
         .stat-card {
@@ -228,17 +387,6 @@
         }
         .month-nav-btn-current:hover {
             background: #f8f9ff;
-        }
-
-        /* Main Content */
-        .main-content { 
-            flex: 1; 
-            padding: 15px; 
-            overflow-y: auto; 
-            overflow-x: hidden;
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
         }
 
         .table-section {
@@ -1396,15 +1544,23 @@
 
     <!-- Main App -->
     <div class="app-container" id="appContainer">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <div>
-                    <h1>Dashboard</h1>
-                    <p id="userName">Loading...</p>
+
+        <!-- ── Mobile backdrop (dims content behind open sidebar on small screens) ── -->
+        <div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <!-- ── Sidebar — push on desktop, overlay on mobile ── -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-inner">
+                <div class="sidebar-header">
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p id="userName">Loading...</p>
+                    </div>
+                    <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+                        <button class="logout-btn" onclick="logout()">Logout</button>
+                        <button class="sidebar-close-btn" onclick="closeSidebar()" title="Close">✕</button>
+                    </div>
                 </div>
-                <button class="logout-btn" onclick="logout()">Logout</button>
-            </div>
 
             <!-- Month Navigation -->
             <div class="month-nav">
@@ -1477,10 +1633,28 @@
                 <span class="chart-label">Monthly Trend (last 4 months)</span>
                 <canvas id="wtBarChart"></canvas>
             </div>
-        </div>
+
+            </div><!-- /.sidebar-inner -->
+        </div><!-- /.sidebar -->
 
         <!-- Main Content -->
         <div class="main-content">
+
+            <!-- ── Sticky top bar with the toggle button ── -->
+            <div class="main-topbar">
+                <button class="topbar-toggle" id="sidebarToggle"
+                        onclick="toggleSidebar()"
+                        aria-label="Toggle dashboard panel"
+                        title="Toggle analytics dashboard">
+                    <span class="topbar-toggle-icon" id="toggleIcon">☰</span>
+                    <span id="toggleLabel">Dashboard</span>
+                </button>
+                <div class="topbar-sep"></div>
+                <span style="font-size:12px; font-weight:600; color:var(--text-sub);">Elite Routine Tracker</span>
+            </div>
+
+            <!-- Scrollable content wrapper -->
+            <div class="main-scroll">
             <!-- Save/Discard Section -->
             <div class="save-section" id="saveSection">
                 <div class="changes-indicator" id="changesIndicator" style="display: none;">
@@ -1559,9 +1733,10 @@
                         <tbody id="weeklyBody"></tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-    </div>
+            </div><!-- /.weekly-section -->
+            </div><!-- /.main-scroll -->
+        </div><!-- /.main-content -->
+    </div><!-- /.app-container -->
 
     <!-- =============================================
          HABIT MODAL (updated with Section dropdown)
@@ -1964,11 +2139,83 @@
                 document.getElementById('authScreen').style.display = 'none';
                 document.getElementById('appContainer').classList.add('active');
                 document.getElementById('userName').textContent = currentUser.email;
+                initSidebar();
                 updateMonthDisplay();
                 await loadHabits();
-                await loadWeeklyTasks(); // ← Weekly tracker bootstrap
+                await loadWeeklyTasks();
             } catch (e) { alert('Failed to initialize app: ' + e.message); }
         }
+
+        // ─── Sidebar Drawer ────────────────────────────────────────────────────────
+        // Desktop (> 768px): push layout — sidebar width transitions, content shifts right
+        // Mobile  (≤ 768px): overlay — sidebar is position:fixed, backdrop dims content
+
+        function _isMobile() { return window.innerWidth <= 768; }
+
+        function initSidebar() {
+            const savedPref  = localStorage.getItem('sidebarOpen');
+            const shouldOpen = _isMobile() ? false : (savedPref !== 'false');
+            // Suppress transition flash on initial load
+            const sidebar = document.getElementById('sidebar');
+            const origTransition = sidebar.style.transition;
+            sidebar.style.transition = 'none';
+            if (shouldOpen) _applySidebarOpen();
+            else            _applySidebarClosed();
+            requestAnimationFrame(() => { sidebar.style.transition = origTransition; });
+        }
+
+        function _applySidebarOpen() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarToggle').classList.add('is-open');
+            document.getElementById('toggleIcon').textContent  = '✕';
+            document.getElementById('toggleLabel').textContent = 'Close';
+            // Show overlay only on mobile
+            if (_isMobile()) document.getElementById('sidebarOverlay').classList.add('active');
+            localStorage.setItem('sidebarOpen', 'true');
+        }
+
+        function _applySidebarClosed() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarToggle').classList.remove('is-open');
+            document.getElementById('toggleIcon').textContent  = '☰';
+            document.getElementById('toggleLabel').textContent = 'Dashboard';
+            document.getElementById('sidebarOverlay').classList.remove('active');
+            localStorage.setItem('sidebarOpen', 'false');
+        }
+
+        function openSidebar()  { _applySidebarOpen();   }
+        function closeSidebar() { _applySidebarClosed(); }
+
+        function toggleSidebar() {
+            const isOpen = document.getElementById('sidebar').classList.contains('open');
+            isOpen ? closeSidebar() : openSidebar();
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('sidebar').classList.contains('open')) {
+                closeSidebar();
+            }
+        });
+
+        // On resize: switch between push and overlay behaviour gracefully
+        window.addEventListener('resize', () => {
+            const sidebar   = document.getElementById('sidebar');
+            const isOpen    = sidebar.classList.contains('open');
+            const overlay   = document.getElementById('sidebarOverlay');
+            if (_isMobile()) {
+                // Mobile: ensure overlay is visible when open, hidden otherwise
+                overlay.classList.toggle('active', isOpen);
+                // Auto-close if user shrinks viewport; preference is already saved
+                if (isOpen) closeSidebar();
+            } else {
+                // Desktop: never show overlay
+                overlay.classList.remove('active');
+                // Restore saved pref if growing to desktop
+                const savedPref = localStorage.getItem('sidebarOpen');
+                if (!isOpen && savedPref !== 'false') openSidebar();
+            }
+        });
 
         function updateMonthDisplay() {
             const months = ['January','February','March','April','May','June',
