@@ -384,6 +384,32 @@
             background: rgba(79, 70, 229, 0.08);
         }
 
+        /* Expand button — lives in the topbar, visible only when strip is collapsed */
+        .quote-expand-btn {
+            display: none;              /* shown via JS when strip is collapsed */
+            align-items: center;
+            gap: 5px;
+            padding: 5px 11px;
+            border: 1.5px solid rgba(79, 70, 229, 0.30);
+            border-radius: 8px;
+            background: rgba(79, 70, 229, 0.06);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+            user-select: none;
+            margin-left: auto;          /* pushes it to the far right of the topbar */
+        }
+        .quote-expand-btn:hover {
+            background: rgba(79, 70, 229, 0.12);
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.14);
+        }
+        .quote-expand-btn.visible { display: inline-flex; }
+
         @keyframes quoteFadeUp {
             from { opacity: 0; transform: translateY(5px); }
             to   { opacity: 1; transform: translateY(0);   }
@@ -1738,6 +1764,13 @@
                 </button>
                 <div class="topbar-sep"></div>
                 <span style="font-size:12px; font-weight:600; color:var(--text-sub);">Elite Routine Tracker</span>
+                <!-- Shown only when the quote strip is collapsed -->
+                <button class="quote-expand-btn" id="quoteExpandBtn"
+                        onclick="expandQuote()"
+                        title="Show today's quote"
+                        aria-label="Show daily quote">
+                    ✦ Quote
+                </button>
             </div>
 
             <!-- Scrollable content wrapper -->
@@ -2266,14 +2299,16 @@
         }
 
         async function initQuote() {
-            const strip = document.getElementById('quoteStrip');
+            const strip     = document.getElementById('quoteStrip');
+            const expandBtn = document.getElementById('quoteExpandBtn');
             if (!strip) return;
 
             const today = _todayStr();
 
-            // If user already hid the quote today → stay hidden
+            // If user already dismissed the quote this session → show only the expand button
             if (sessionStorage.getItem('quoteHiddenDate') === today) {
                 strip.style.display = 'none';
+                if (expandBtn) expandBtn.classList.add('visible');
                 return;
             }
 
@@ -2296,11 +2331,11 @@
                 document.getElementById('quoteText').textContent   = data.quote_text;
                 document.getElementById('quoteAuthor').textContent = `Day ${dayNum} of 365`;
 
-                // Show the strip with a smooth fade
+                // Show the strip with a smooth fade-up
                 strip.style.display = '';
-                // Force reflow so CSS transition fires
-                strip.offsetHeight; // eslint-disable-line no-unused-expressions
+                strip.offsetHeight; // force reflow so CSS transition fires
                 strip.classList.remove('qs-collapsed');
+                if (expandBtn) expandBtn.classList.remove('visible');
 
             } catch (e) {
                 console.warn('Quote error:', e.message);
@@ -2308,15 +2343,39 @@
         }
 
         function collapseQuote() {
-            const strip = document.getElementById('quoteStrip');
+            const strip     = document.getElementById('quoteStrip');
+            const expandBtn = document.getElementById('quoteExpandBtn');
             if (!strip) return;
+
             strip.classList.add('qs-collapsed');
-            // After transition ends, fully hide it so it takes no space
+
+            // After the CSS transition finishes, fully remove from flow
             strip.addEventListener('transitionend', () => {
                 strip.style.display = 'none';
             }, { once: true });
-            // Remember: user dismissed for this calendar day
+
+            // Mark as dismissed for this calendar day (cleared on expand)
             sessionStorage.setItem('quoteHiddenDate', _todayStr());
+
+            // Reveal the expand button in the topbar
+            if (expandBtn) expandBtn.classList.add('visible');
+        }
+
+        function expandQuote() {
+            const strip     = document.getElementById('quoteStrip');
+            const expandBtn = document.getElementById('quoteExpandBtn');
+            if (!strip) return;
+
+            // Clear dismissed state so it stays open
+            sessionStorage.removeItem('quoteHiddenDate');
+
+            // Hide the topbar expand button
+            if (expandBtn) expandBtn.classList.remove('visible');
+
+            // Reveal and animate the strip back in
+            strip.style.display = '';
+            strip.offsetHeight; // force reflow
+            strip.classList.remove('qs-collapsed');
         }
 
         // ─── Sidebar Drawer ────────────────────────────────────────────────────────
