@@ -302,6 +302,93 @@
             flex: 1;
         }
 
+        /* ═══════════════════════════════════════════════════════════════════
+           DAILY QUOTE STRIP
+           Sits between .main-topbar and .main-scroll. First content the
+           user sees each day. Collapses for the session via sessionStorage.
+           ═══════════════════════════════════════════════════════════════════ */
+        .quote-strip {
+            background: linear-gradient(135deg,
+                rgba(79, 70, 229, 0.07) 0%,
+                rgba(139, 92, 246, 0.04) 100%);
+            border-bottom: 1px solid rgba(79, 70, 229, 0.13);
+            overflow: hidden;
+            max-height: 120px;
+            opacity: 1;
+            transition: max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity    0.28s ease,
+                        padding    0.28s ease;
+            flex-shrink: 0;
+        }
+        .quote-strip.qs-collapsed {
+            max-height: 0 !important;
+            opacity: 0;
+        }
+
+        .quote-strip-inner {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 11px 16px 10px;
+        }
+
+        /* Left accent bar — matches the divider banner language */
+        .quote-accent {
+            width: 3px;
+            min-width: 3px;
+            border-radius: 99px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+            align-self: stretch;
+            flex-shrink: 0;
+        }
+
+        .quote-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .quote-text {
+            font-size: 12.5px;
+            font-weight: 600;
+            font-style: italic;
+            color: var(--text-main);
+            line-height: 1.52;
+            letter-spacing: 0.01em;
+            animation: quoteFadeUp 0.45s ease both;
+        }
+        .quote-author {
+            margin-top: 3px;
+            font-size: 10.5px;
+            font-weight: 600;
+            font-style: normal;
+            color: var(--text-sub);
+            letter-spacing: 0.03em;
+        }
+
+        /* Collapse chevron button */
+        .quote-hide-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-sub);
+            font-size: 13px;
+            line-height: 1;
+            padding: 2px 4px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            align-self: flex-start;
+            transition: color 0.15s, background 0.15s;
+            user-select: none;
+        }
+        .quote-hide-btn:hover {
+            color: var(--primary);
+            background: rgba(79, 70, 229, 0.08);
+        }
+
+        @keyframes quoteFadeUp {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0);   }
+        }
+
         .stat-card {
             background: #fff;
             border: 1px solid #f1f5f9;
@@ -1655,6 +1742,20 @@
 
             <!-- Scrollable content wrapper -->
             <div class="main-scroll">
+            <!-- ── Daily Quote Strip ─────────────────────────────────────────
+                 First content the user sees. Collapses for the session.
+                 ──────────────────────────────────────────────────────────── -->
+            <div class="quote-strip" id="quoteStrip" style="display:none;">
+                <div class="quote-strip-inner">
+                    <div class="quote-accent"></div>
+                    <div class="quote-body">
+                        <div class="quote-text" id="quoteText">…</div>
+                        <div class="quote-author" id="quoteAuthor"></div>
+                    </div>
+                    <button class="quote-hide-btn" onclick="collapseQuote()"
+                            title="Hide for today" aria-label="Hide quote">∧</button>
+                </div>
+            </div>
             <!-- Save/Discard Section -->
             <div class="save-section" id="saveSection">
                 <div class="changes-indicator" id="changesIndicator" style="display: none;">
@@ -2143,7 +2244,79 @@
                 updateMonthDisplay();
                 await loadHabits();
                 await loadWeeklyTasks();
+                initQuote();        // ← non-blocking; runs after core data loads
             } catch (e) { alert('Failed to initialize app: ' + e.message); }
+        }
+
+        // ─── Daily Quote Strip ─────────────────────────────────────────────────────
+
+        // Returns today as "YYYY-MM-DD" in local time
+        function _todayStr() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        // Day-of-year (1–365), using local date
+        function _dayOfYear() {
+            const now   = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff  = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            return Math.floor(diff / oneDay);   // 1 = Jan 1, 365 = Dec 31
+        }
+
+        async function initQuote() {
+            const strip = document.getElementById('quoteStrip');
+            if (!strip) return;
+
+            const today = _todayStr();
+
+            // If user already hid the quote today → stay hidden
+            if (sessionStorage.getItem('quoteHiddenDate') === today) {
+                strip.style.display = 'none';
+                return;
+            }
+
+            // Compute which quote to show: day 1–365, looping with modulo
+            const raw    = _dayOfYear();                       // 1–365
+            const dayNum = ((raw - 1) % 365) + 1;             // always 1–365
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('daily_quotes')
+                    .select('quote_text')
+                    .eq('day_number', dayNum)
+                    .single();
+
+                if (error || !data) {
+                    console.warn('Quote fetch failed:', error?.message);
+                    return;   // fail silently — don't break the app
+                }
+
+                document.getElementById('quoteText').textContent   = data.quote_text;
+                document.getElementById('quoteAuthor').textContent = `Day ${dayNum} of 365`;
+
+                // Show the strip with a smooth fade
+                strip.style.display = '';
+                // Force reflow so CSS transition fires
+                strip.offsetHeight; // eslint-disable-line no-unused-expressions
+                strip.classList.remove('qs-collapsed');
+
+            } catch (e) {
+                console.warn('Quote error:', e.message);
+            }
+        }
+
+        function collapseQuote() {
+            const strip = document.getElementById('quoteStrip');
+            if (!strip) return;
+            strip.classList.add('qs-collapsed');
+            // After transition ends, fully hide it so it takes no space
+            strip.addEventListener('transitionend', () => {
+                strip.style.display = 'none';
+            }, { once: true });
+            // Remember: user dismissed for this calendar day
+            sessionStorage.setItem('quoteHiddenDate', _todayStr());
         }
 
         // ─── Sidebar Drawer ────────────────────────────────────────────────────────
