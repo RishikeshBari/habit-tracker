@@ -1608,6 +1608,221 @@
 
         /* Collapsed section — hide its habit rows */
         .habit-row-hidden { display: none !important; }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           PENDING TODAY — PREMIUM SECTION
+           ═══════════════════════════════════════════════════════════════════ */
+        .pending-card {
+            border-radius: 14px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            max-width: 1200px;
+            transition: background 0.5s ease, padding 0.3s ease;
+        }
+        /* Purple gradient — active state */
+        .pending-card.state-active {
+            background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 50%, #7c3aed 100%);
+        }
+        /* Green gradient — all-done state */
+        .pending-card.state-done {
+            background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+        }
+        /* Sheen overlay */
+        .pending-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.00) 60%);
+            pointer-events: none;
+        }
+        /* Gold dust edge — only on active state */
+        .pending-card.state-active::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0; bottom: 0; width: 90px;
+            background: linear-gradient(90deg, transparent 0%, rgba(251,191,36,0.12) 60%, rgba(251,191,36,0.22) 100%);
+            pointer-events: none;
+        }
+
+        /* ── Top row: ring + info ── */
+        .pending-top {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* SVG progress ring */
+        .pending-ring-wrap {
+            width: 88px;
+            height: 88px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .pending-ring-wrap svg { width: 100%; height: 100%; }
+        .pending-ring-track {
+            fill: none;
+            stroke: rgba(255,255,255,0.15);
+            stroke-width: 5;
+        }
+        .pending-ring-fill {
+            fill: none;
+            stroke: #fbbf24;
+            stroke-width: 5;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+            filter: drop-shadow(0 0 6px rgba(251,191,36,0.4));
+        }
+        .pending-card.state-done .pending-ring-fill {
+            stroke: #ffffff;
+            filter: none;
+        }
+        .pending-ring-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .pending-ring-num {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        .pending-ring-den {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.65);
+            margin-top: 2px;
+        }
+        /* Done-state checkmark inside ring */
+        .pending-ring-check {
+            display: none;
+            font-size: 28px;
+            color: #ffffff;
+        }
+        .pending-card.state-done .pending-ring-num,
+        .pending-card.state-done .pending-ring-den { display: none; }
+        .pending-card.state-done .pending-ring-check { display: block; }
+
+        /* Info block */
+        .pending-info { flex: 1; min-width: 0; }
+        .pending-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pending-chevron {
+            font-size: 12px;
+            color: rgba(255,255,255,0.55);
+            transition: transform 0.2s ease;
+            line-height: 1;
+        }
+        .pending-chevron.collapsed { transform: rotate(-90deg); }
+        .pending-motivation {
+            font-size: 16px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.3;
+        }
+        .pending-sub {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+            margin-top: 4px;
+        }
+
+        /* ── Habit list ── */
+        .pending-list {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            position: relative;
+            z-index: 1;
+        }
+        .pending-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            background: rgba(255,255,255,0.10);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+        .pending-item:hover { background: rgba(255,255,255,0.18); }
+        .pending-item-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.50);
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+        .pending-item-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pending-item-tag {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 99px;
+            background: rgba(255,255,255,0.13);
+            color: rgba(255,255,255,0.70);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* ── Collapsed state ── */
+        .pending-card.is-collapsed { padding: 14px 20px; }
+        .pending-card.is-collapsed .pending-ring-wrap {
+            width: 32px;
+            height: 32px;
+        }
+        .pending-card.is-collapsed .pending-ring-center { display: none; }
+        .pending-card.is-collapsed .pending-list { display: none; }
+        .pending-card.is-collapsed .pending-motivation { display: none; }
+        .pending-card.is-collapsed .pending-sub { display: none; }
+        .pending-card.is-collapsed .pending-label { margin-bottom: 0; }
+        .pending-card.is-collapsed .pending-top { gap: 12px; }
+        /* Collapsed badge */
+        .pending-collapsed-badge {
+            display: none;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 99px;
+            background: rgba(251,191,36,0.22);
+            color: #fde68a;
+            border: 1px solid rgba(251,191,36,0.35);
+            white-space: nowrap;
+        }
+        .pending-card.is-collapsed .pending-collapsed-badge { display: inline-block; }
+        /* Done collapsed badge */
+        .pending-card.state-done .pending-collapsed-badge {
+            background: rgba(255,255,255,0.20);
+            color: #ffffff;
+            border-color: rgba(255,255,255,0.35);
+        }
     </style>
 </head>
 <body>
@@ -1805,6 +2020,39 @@
                 </div>
             </div>
             
+            <!-- ═══════════════════════════════════════
+                 PENDING TODAY — PREMIUM
+                 ═══════════════════════════════════════ -->
+            <div class="pending-card state-active" id="pendingCard" style="display:none;">
+                <div class="pending-top" onclick="togglePendingSection()">
+                    <div class="pending-ring-wrap">
+                        <svg viewBox="0 0 88 88" id="pendingRingSvg">
+                            <circle class="pending-ring-track" cx="44" cy="44" r="36" />
+                            <circle class="pending-ring-fill" cx="44" cy="44" r="36"
+                                id="pendingRingFill"
+                                stroke-dasharray="226.2"
+                                stroke-dashoffset="226.2"
+                                transform="rotate(-90 44 44)" />
+                        </svg>
+                        <div class="pending-ring-center">
+                            <span class="pending-ring-num" id="pendingRingNum">0</span>
+                            <span class="pending-ring-den" id="pendingRingDen">of 0</span>
+                            <span class="pending-ring-check">✓</span>
+                        </div>
+                    </div>
+                    <div class="pending-info">
+                        <div class="pending-label">
+                            Pending Today
+                            <span class="pending-chevron" id="pendingChevron">▾</span>
+                            <span class="pending-collapsed-badge" id="pendingBadge"></span>
+                        </div>
+                        <div class="pending-motivation" id="pendingMotivation"></div>
+                        <div class="pending-sub" id="pendingSub"></div>
+                    </div>
+                </div>
+                <div class="pending-list" id="pendingList"></div>
+            </div>
+
             <div class="table-section">
                 <div class="section-title">
                     <span>Daily Habits</span>
@@ -3136,6 +3384,209 @@
             });
         }
 
+        // ─── Pending Today — Premium Section ────────────────────────────────────
+
+        // Ring constants
+        const _RING_R = 36;
+        const _RING_CIRCUM = 2 * Math.PI * _RING_R;     // ≈ 226.2
+        const _RING_MINI_R = 12;
+        const _RING_MINI_C = 2 * Math.PI * _RING_MINI_R; // ≈ 75.4
+
+        function togglePendingSection() {
+            const card    = document.getElementById('pendingCard');
+            const chevron = document.getElementById('pendingChevron');
+            const isNowCollapsed = !card.classList.contains('is-collapsed');
+
+            card.classList.toggle('is-collapsed', isNowCollapsed);
+            chevron.classList.toggle('collapsed', isNowCollapsed);
+
+            // Swap SVG viewBox between full ring and mini ring
+            const svg  = document.getElementById('pendingRingSvg');
+            const track = svg.querySelector('.pending-ring-track');
+            const fill  = svg.querySelector('.pending-ring-fill');
+
+            if (isNowCollapsed) {
+                svg.setAttribute('viewBox', '0 0 32 32');
+                track.setAttribute('cx', '16');
+                track.setAttribute('cy', '16');
+                track.setAttribute('r', String(_RING_MINI_R));
+                track.setAttribute('stroke-width', '3');
+                fill.setAttribute('cx', '16');
+                fill.setAttribute('cy', '16');
+                fill.setAttribute('r', String(_RING_MINI_R));
+                fill.setAttribute('stroke-width', '3');
+                fill.setAttribute('transform', 'rotate(-90 16 16)');
+                // Recalculate dasharray/offset for mini ring
+                const pct = parseFloat(fill.dataset.pct || 0);
+                fill.setAttribute('stroke-dasharray', String(_RING_MINI_C));
+                fill.setAttribute('stroke-dashoffset', String(_RING_MINI_C * (1 - pct / 100)));
+            } else {
+                svg.setAttribute('viewBox', '0 0 88 88');
+                track.setAttribute('cx', '44');
+                track.setAttribute('cy', '44');
+                track.setAttribute('r', String(_RING_R));
+                track.setAttribute('stroke-width', '5');
+                fill.setAttribute('cx', '44');
+                fill.setAttribute('cy', '44');
+                fill.setAttribute('r', String(_RING_R));
+                fill.setAttribute('stroke-width', '5');
+                fill.setAttribute('transform', 'rotate(-90 44 44)');
+                const pct = parseFloat(fill.dataset.pct || 0);
+                fill.setAttribute('stroke-dasharray', String(_RING_CIRCUM));
+                fill.setAttribute('stroke-dashoffset', String(_RING_CIRCUM * (1 - pct / 100)));
+            }
+
+            sessionStorage.setItem('pendingCollapsed', isNowCollapsed ? '1' : '');
+        }
+
+        function _getMotivation(touchedCount, totalCount, pendingCount) {
+            const pct = Math.round((touchedCount / totalCount) * 100);
+            if (touchedCount === 0) return "Let's get started!";
+            if (pct <= 40) return "Let's build some momentum!";
+            if (pct <= 70) return "Great momentum! Keep it up.";
+            if (pendingCount === 1) return "One more to go. Finish strong!";
+            return "Almost there! Finish strong!";
+        }
+
+        function renderPendingSection() {
+            const card        = document.getElementById('pendingCard');
+            const list        = document.getElementById('pendingList');
+            const ringNum     = document.getElementById('pendingRingNum');
+            const ringDen     = document.getElementById('pendingRingDen');
+            const ringFill    = document.getElementById('pendingRingFill');
+            const motivation  = document.getElementById('pendingMotivation');
+            const subText     = document.getElementById('pendingSub');
+            const badge       = document.getElementById('pendingBadge');
+            const chevron     = document.getElementById('pendingChevron');
+            if (!card || !list) return;
+
+            // Only show for the current month
+            const now   = new Date();
+            const today = now.getDate();
+            const isCurrentMonth = selectedYear === now.getFullYear()
+                                && selectedMonth === now.getMonth();
+            if (!isCurrentMonth) { card.style.display = 'none'; return; }
+
+            // Filter: habits active today
+            const activeToday = habits.filter(h => {
+                const cd = new Date(h.created_at);
+                if (cd.getFullYear() === selectedYear && cd.getMonth() === selectedMonth
+                    && today < cd.getDate()) return false;
+                if (h.end_date) {
+                    const ed = new Date(h.end_date + 'T00:00:00');
+                    if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth
+                        && today > ed.getDate()) return false;
+                    if (ed < new Date(selectedYear, selectedMonth, 1)) return false;
+                }
+                return true;
+            });
+
+            if (activeToday.length === 0) { card.style.display = 'none'; return; }
+
+            // Compute stats: "completed" = any progress > 0%
+            const totalCount   = activeToday.length;
+            const touchedCount = activeToday.filter(h => (completions[`${h.id}-${today}`] || 0) > 0).length;
+            const pct          = Math.round((touchedCount / totalCount) * 100);
+
+            // Pending = 0% only (untouched), sorted by original section order
+            const sortedDividers = [...dividers].sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+            const dividerOrder   = {};
+            sortedDividers.forEach((d, i) => { dividerOrder[d.id] = i + 1; });
+
+            const pendingHabits = activeToday
+                .filter(h => (completions[`${h.id}-${today}`] || 0) === 0)
+                .sort((a, b) => {
+                    const aGroup = a.divider_id ? (dividerOrder[a.divider_id] ?? 999) : 0;
+                    const bGroup = b.divider_id ? (dividerOrder[b.divider_id] ?? 999) : 0;
+                    if (aGroup !== bGroup) return aGroup - bGroup;
+                    return (a.position ?? 999) - (b.position ?? 999);
+                });
+
+            const pendingCount = pendingHabits.length;
+            const allDone      = pendingCount === 0;
+
+            // Show card
+            card.style.display = '';
+
+            // State class: active vs done
+            card.classList.toggle('state-active', !allDone);
+            card.classList.toggle('state-done', allDone);
+
+            // Restore collapse state from session
+            const savedCollapsed = sessionStorage.getItem('pendingCollapsed') === '1';
+            card.classList.toggle('is-collapsed', savedCollapsed);
+            chevron.classList.toggle('collapsed', savedCollapsed);
+
+            // Ring: update values
+            ringNum.textContent = String(touchedCount);
+            ringDen.textContent = `of ${totalCount}`;
+
+            // Ring fill: calculate stroke-dashoffset
+            const isCollapsed = card.classList.contains('is-collapsed');
+            const circum = isCollapsed ? _RING_MINI_C : _RING_CIRCUM;
+            ringFill.setAttribute('stroke-dasharray', String(circum));
+            ringFill.setAttribute('stroke-dashoffset', String(circum * (1 - pct / 100)));
+            ringFill.dataset.pct = String(pct);
+
+            // Sync SVG geometry for current collapsed state
+            const svg   = document.getElementById('pendingRingSvg');
+            const track = svg.querySelector('.pending-ring-track');
+            if (isCollapsed) {
+                svg.setAttribute('viewBox', '0 0 32 32');
+                track.setAttribute('cx', '16'); track.setAttribute('cy', '16');
+                track.setAttribute('r', String(_RING_MINI_R)); track.setAttribute('stroke-width', '3');
+                ringFill.setAttribute('cx', '16'); ringFill.setAttribute('cy', '16');
+                ringFill.setAttribute('r', String(_RING_MINI_R)); ringFill.setAttribute('stroke-width', '3');
+                ringFill.setAttribute('transform', 'rotate(-90 16 16)');
+            } else {
+                svg.setAttribute('viewBox', '0 0 88 88');
+                track.setAttribute('cx', '44'); track.setAttribute('cy', '44');
+                track.setAttribute('r', String(_RING_R)); track.setAttribute('stroke-width', '5');
+                ringFill.setAttribute('cx', '44'); ringFill.setAttribute('cy', '44');
+                ringFill.setAttribute('r', String(_RING_R)); ringFill.setAttribute('stroke-width', '5');
+                ringFill.setAttribute('transform', 'rotate(-90 44 44)');
+            }
+
+            // Motivation text
+            if (allDone) {
+                motivation.textContent = 'Perfect day! All habits completed.';
+                subText.textContent = `${totalCount} of ${totalCount} done · You're building real consistency`;
+                badge.textContent = 'All done!';
+            } else {
+                motivation.textContent = _getMotivation(touchedCount, totalCount, pendingCount);
+                subText.textContent = `${pendingCount} habit${pendingCount !== 1 ? 's' : ''} still waiting for you`;
+                badge.textContent = `${pendingCount} pending`;
+            }
+
+            // Divider name lookup
+            const dividerNames = {};
+            dividers.forEach(d => { dividerNames[d.id] = d.title; });
+
+            // Render list
+            list.innerHTML = '';
+
+            if (allDone) return;   // No list needed in done state
+
+            pendingHabits.forEach(habit => {
+                const sectionLabel = habit.divider_id && dividerNames[habit.divider_id]
+                    ? dividerNames[habit.divider_id] : 'Ungrouped';
+
+                const item = document.createElement('div');
+                item.className = 'pending-item';
+                item.innerHTML = `
+                    <div class="pending-item-dot"></div>
+                    <span class="pending-item-name" title="${escapeHtml(habit.name)}">${escapeHtml(habit.name)}</span>
+                    <span class="pending-item-tag">${escapeHtml(sectionLabel)}</span>`;
+
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openPctPopover(habit.id, today, 0, item);
+                });
+
+                list.appendChild(item);
+            });
+        }
+
         // ─── RENDER TABLE ──────────────────────────────────────────────────────────
         // Builds the full table including interleaved divider rows.
         function renderTable() {
@@ -3208,6 +3659,7 @@
                 updateGlobalCheckboxStates();
                 if (typeof Sortable !== 'undefined') initializeDragAndDrop();
                 updateAnalytics();
+                renderPendingSection();
             } catch (e) {
                 console.error('Render table error:', e);
             }
