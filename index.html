@@ -17,6 +17,63 @@
             --card: #ffffff;
             --text-main: #1e293b;
             --text-sub: #64748b;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --hover-bg: #f8fafc;
+            --input-bg: #ffffff;
+            --shadow-color: rgba(0,0,0,0.06);
+            --auth-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --month-nav-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* ══════ THEME DEFINITIONS ══════ */
+        [data-theme="dark"] {
+            --primary: #818cf8; --secondary: #a78bfa; --success: #34d399; --danger: #f87171;
+            --bg: #0f172a; --card: #1e293b; --text-main: #e2e8f0; --text-sub: #94a3b8;
+            --border: #334155; --border-light: #1e293b; --hover-bg: #1e293b;
+            --input-bg: #1e293b; --shadow-color: rgba(0,0,0,0.3);
+            --auth-gradient: linear-gradient(135deg, #312e81 0%, #4c1d95 100%);
+            --month-nav-gradient: linear-gradient(135deg, #312e81 0%, #4c1d95 100%);
+        }
+        [data-theme="ocean"] {
+            --primary: #0891b2; --secondary: #06b6d4; --success: #14b8a6; --danger: #f43f5e;
+            --bg: #f0f9ff; --card: #ffffff; --text-main: #0c4a6e; --text-sub: #64748b;
+            --border: #bae6fd; --border-light: #e0f2fe; --hover-bg: #f0f9ff;
+            --input-bg: #ffffff; --shadow-color: rgba(8,145,178,0.06);
+            --auth-gradient: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            --month-nav-gradient: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        }
+        [data-theme="forest"] {
+            --primary: #059669; --secondary: #10b981; --success: #22c55e; --danger: #ef4444;
+            --bg: #f0fdf4; --card: #ffffff; --text-main: #14532d; --text-sub: #6b7280;
+            --border: #bbf7d0; --border-light: #dcfce7; --hover-bg: #f0fdf4;
+            --input-bg: #ffffff; --shadow-color: rgba(5,150,105,0.06);
+            --auth-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+            --month-nav-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        [data-theme="sunset"] {
+            --primary: #ea580c; --secondary: #f97316; --success: #22c55e; --danger: #dc2626;
+            --bg: #fff7ed; --card: #ffffff; --text-main: #431407; --text-sub: #78716c;
+            --border: #fed7aa; --border-light: #ffedd5; --hover-bg: #fff7ed;
+            --input-bg: #ffffff; --shadow-color: rgba(234,88,12,0.06);
+            --auth-gradient: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            --month-nav-gradient: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+        }
+        [data-theme="rose"] {
+            --primary: #e11d48; --secondary: #f43f5e; --success: #10b981; --danger: #dc2626;
+            --bg: #fff1f2; --card: #ffffff; --text-main: #4c0519; --text-sub: #71717a;
+            --border: #fecdd3; --border-light: #ffe4e6; --hover-bg: #fff1f2;
+            --input-bg: #ffffff; --shadow-color: rgba(225,29,72,0.06);
+            --auth-gradient: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+            --month-nav-gradient: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+        }
+        [data-theme="midnight"] {
+            --primary: #a78bfa; --secondary: #c084fc; --success: #4ade80; --danger: #fb7185;
+            --bg: #020617; --card: #0f172a; --text-main: #f1f5f9; --text-sub: #94a3b8;
+            --border: #1e293b; --border-light: #0f172a; --hover-bg: #1e293b;
+            --input-bg: #0f172a; --shadow-color: rgba(0,0,0,0.4);
+            --auth-gradient: linear-gradient(135deg, #4c1d95 0%, #581c87 100%);
+            --month-nav-gradient: linear-gradient(135deg, #4c1d95 0%, #581c87 100%);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -29,10 +86,10 @@
             justify-content: center;
             width: 100%;
             height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--auth-gradient);
         }
         .auth-card {
-            background: white;
+            background: var(--card);
             padding: 40px;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -44,10 +101,12 @@
         .auth-input {
             width: 100%;
             padding: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border);
             border-radius: 8px;
             margin-bottom: 15px;
             font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-main);
         }
         .auth-btn {
             width: 100%;
@@ -128,7 +187,7 @@
             overflow: hidden;          /* hides inner content while collapsing */
             width: 0;                  /* collapsed default */
             background: var(--card);
-            border-right: 1px solid #e2e8f0;
+            border-right: 1px solid var(--border);
             transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
             /* No position:fixed on desktop — lives in normal flow */
         }
@@ -237,23 +296,21 @@
             top: 0;
             z-index: 50;
             background: var(--bg);
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border);
             padding: 10px 15px;
             display: flex;
             align-items: center;
             gap: 12px;
             flex-shrink: 0;
         }
-
-        /* The toggle pill button */
         .topbar-toggle {
             display: inline-flex;
             align-items: center;
             gap: 7px;
             padding: 7px 13px;
-            border: 1.5px solid #e2e8f0;
+            border: 1.5px solid var(--border);
             border-radius: 9px;
-            background: #ffffff;
+            background: var(--card);
             color: var(--text-main);
             font-size: 12px;
             font-weight: 700;
@@ -401,7 +458,7 @@
             flex-shrink: 0;
             transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
             user-select: none;
-            margin-left: auto;          /* pushes it to the far right of the topbar */
+            margin-left: 8px;          /* sits after the theme picker */
         }
         .quote-expand-btn:hover {
             background: rgba(79, 70, 229, 0.12);
@@ -416,8 +473,8 @@
         }
 
         .stat-card {
-            background: #fff;
-            border: 1px solid #f1f5f9;
+            background: var(--card);
+            border: 1px solid var(--border-light);
             border-radius: 10px;
             padding: 12px;
             margin-bottom: 10px;
@@ -456,11 +513,11 @@
 
         /* Month Navigation */
         .month-nav {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--month-nav-gradient);
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 15px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px var(--shadow-color);
         }
         .month-nav-title {
             font-size: 20px;
@@ -506,8 +563,8 @@
             background: var(--card);
             border-radius: 12px;
             padding: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            border: 1px solid var(--border-light);
             max-width: 1200px;
         }
 
@@ -722,8 +779,8 @@
         #pctPopover {
             position: fixed;
             z-index: 9999;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: var(--card);
+            border: 1px solid var(--border);
             border-radius: 14px;
             padding: 14px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06);
@@ -1109,21 +1166,24 @@
         }
         .modal.active { display: flex; }
         .modal-content { 
-            background: white; 
+            background: var(--card); 
             padding: 30px; 
             border-radius: 12px; 
             max-width: 400px; 
             width: 90%; 
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            color: var(--text-main);
         }
         .modal-content h2 { margin-bottom: 20px; font-size: 20px; }
         .modal-input { 
             width: 100%; 
             padding: 10px; 
-            border: 1px solid #e2e8f0; 
+            border: 1px solid var(--border); 
             border-radius: 8px; 
             margin-bottom: 15px; 
-            font-size: 14px; 
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-main);
         }
         .modal-label {
             display: block;
@@ -1143,7 +1203,7 @@
             font-size: 13px; 
         }
         .modal-btn-primary { background: var(--primary); color: white; }
-        .modal-btn-secondary { background: #e2e8f0; color: var(--text-main); }
+        .modal-btn-secondary { background: var(--border); color: var(--text-main); }
 
         /* =============================================
            DIVIDER / SECTION STYLES
@@ -1317,8 +1377,8 @@
             background: var(--card);
             border-radius: 12px;
             padding: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            border: 1px solid var(--border-light);
             max-width: 1200px;
         }
 
@@ -1608,6 +1668,300 @@
 
         /* Collapsed section — hide its habit rows */
         .habit-row-hidden { display: none !important; }
+
+        /* ══════ THEME PICKER ══════ */
+        .theme-trigger {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border: 1.5px solid var(--border);
+            border-radius: 8px; background: var(--card); cursor: pointer;
+            font-size: 14px; transition: all 0.15s; flex-shrink: 0;
+            position: relative;
+        }
+        .theme-trigger:hover {
+            border-color: var(--primary); background: var(--hover-bg);
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+        .theme-dropdown {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 12px; min-width: 220px;
+            box-shadow: 0 12px 40px var(--shadow-color); z-index: 999;
+        }
+        .theme-dropdown.open { display: block; }
+        .theme-dropdown-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-sub); margin-bottom: 8px;
+            padding: 0 4px;
+        }
+        .theme-option {
+            display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+            border-radius: 8px; cursor: pointer; transition: background 0.12s;
+            border: 1.5px solid transparent; margin-bottom: 2px;
+        }
+        .theme-option:hover { background: var(--hover-bg); }
+        .theme-option.active { border-color: var(--primary); background: var(--hover-bg); }
+        .theme-swatch {
+            width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+        .theme-option-name {
+            font-size: 12px; font-weight: 600; color: var(--text-main); flex: 1;
+        }
+        .theme-option-check {
+            font-size: 12px; color: var(--primary); font-weight: 800; display: none;
+        }
+        .theme-option.active .theme-option-check { display: block; }
+
+        /* Custom color section */
+        .theme-custom-section {
+            display: none; margin-top: 8px; padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+        .theme-custom-section.visible { display: block; }
+        .theme-color-row {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+        }
+        .theme-color-label {
+            font-size: 11px; font-weight: 600; color: var(--text-sub); width: 60px;
+        }
+        .theme-color-input {
+            width: 32px; height: 24px; border: 1px solid var(--border);
+            border-radius: 4px; cursor: pointer; padding: 1px;
+            background: var(--card);
+        }
+        .theme-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+        .theme-color-input::-webkit-color-swatch { border: none; border-radius: 3px; }
+        .theme-apply-btn {
+            width: 100%; padding: 6px; background: var(--primary); color: #fff;
+            border: none; border-radius: 6px; font-size: 11px; font-weight: 700;
+            cursor: pointer; margin-top: 4px; transition: background 0.12s;
+        }
+        .theme-apply-btn:hover { opacity: 0.9; }
+
+        /* ══════ DARK THEME OVERRIDES ══════ */
+        [data-theme="dark"] .auth-card,
+        [data-theme="midnight"] .auth-card {
+            background: var(--card); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        [data-theme="dark"] .auth-card h1,
+        [data-theme="midnight"] .auth-card h1 { color: var(--primary); }
+        [data-theme="dark"] .auth-card p,
+        [data-theme="midnight"] .auth-card p { color: var(--text-sub); }
+        [data-theme="dark"] .auth-input,
+        [data-theme="midnight"] .auth-input {
+            background: var(--input-bg); border-color: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .auth-btn,
+        [data-theme="midnight"] .auth-btn { background: var(--primary); }
+
+        [data-theme="dark"] .modal-content,
+        [data-theme="midnight"] .modal-content {
+            background: var(--card); color: var(--text-main);
+        }
+        [data-theme="dark"] .modal-input,
+        [data-theme="midnight"] .modal-input {
+            background: var(--input-bg); border-color: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .modal-btn-secondary,
+        [data-theme="midnight"] .modal-btn-secondary {
+            background: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] th,
+        [data-theme="midnight"] th { background: var(--card); border-color: var(--border); }
+        [data-theme="dark"] td,
+        [data-theme="midnight"] td { border-color: var(--border); }
+        [data-theme="dark"] td.habit-col,
+        [data-theme="midnight"] td.habit-col { background: var(--card); }
+        [data-theme="dark"] td.stats-col,
+        [data-theme="midnight"] td.stats-col { background: rgba(16,185,129,0.08); }
+        [data-theme="dark"] td.actions-col,
+        [data-theme="midnight"] td.actions-col { background: var(--card); }
+        [data-theme="dark"] #globalCheckboxRow th,
+        [data-theme="midnight"] #globalCheckboxRow th { background: var(--card); }
+
+        [data-theme="dark"] .save-section,
+        [data-theme="midnight"] .save-section {
+            background: var(--card); border-color: var(--border);
+        }
+        [data-theme="dark"] .save-section.has-changes,
+        [data-theme="midnight"] .save-section.has-changes {
+            background: rgba(245,158,11,0.08); border-color: #f59e0b;
+        }
+        [data-theme="dark"] .stat-card,
+        [data-theme="midnight"] .stat-card {
+            background: var(--card); border-color: var(--border);
+        }
+        [data-theme="dark"] .table-section,
+        [data-theme="dark"] .weekly-section,
+        [data-theme="midnight"] .table-section,
+        [data-theme="midnight"] .weekly-section {
+            background: var(--card); border-color: var(--border);
+        }
+        [data-theme="dark"] .sidebar,
+        [data-theme="midnight"] .sidebar {
+            background: var(--card); border-color: var(--border);
+        }
+        [data-theme="dark"] .main-topbar,
+        [data-theme="midnight"] .main-topbar {
+            background: var(--bg); border-color: var(--border);
+        }
+        [data-theme="dark"] .topbar-toggle,
+        [data-theme="midnight"] .topbar-toggle {
+            background: var(--card); border-color: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .weekly-table th,
+        [data-theme="midnight"] .weekly-table th {
+            background: var(--card); border-color: var(--border);
+        }
+        [data-theme="dark"] .weekly-table td,
+        [data-theme="midnight"] .weekly-table td { border-color: var(--border); }
+        [data-theme="dark"] .weekly-table td.wt-task-col,
+        [data-theme="midnight"] .weekly-table td.wt-task-col { background: var(--card); }
+        [data-theme="dark"] .weekly-table td.wt-act-col,
+        [data-theme="midnight"] .weekly-table td.wt-act-col { background: var(--card); }
+        [data-theme="dark"] .week-nav,
+        [data-theme="midnight"] .week-nav {
+            background: var(--card); border-color: var(--border);
+        }
+        [data-theme="dark"] .discard-btn,
+        [data-theme="midnight"] .discard-btn {
+            background: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .add-section-btn,
+        [data-theme="midnight"] .add-section-btn {
+            background: var(--card); border-color: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .sidebar-close-btn,
+        [data-theme="midnight"] .sidebar-close-btn { background: var(--border); }
+        [data-theme="dark"] .pct-cell,
+        [data-theme="midnight"] .pct-cell {
+            background: var(--card); border-color: var(--text-sub);
+        }
+        [data-theme="dark"] #pctPopover,
+        [data-theme="midnight"] #pctPopover {
+            background: var(--card); border-color: var(--border);
+        }
+        [data-theme="dark"] .pop-qbtn,
+        [data-theme="midnight"] .pop-qbtn {
+            background: var(--bg); border-color: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .pop-time-input,
+        [data-theme="dark"] #pctManualInput,
+        [data-theme="midnight"] .pop-time-input,
+        [data-theme="midnight"] #pctManualInput {
+            background: var(--input-bg); border-color: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .pop-step-btn,
+        [data-theme="midnight"] .pop-step-btn {
+            background: var(--bg); border-color: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .history-modal-content,
+        [data-theme="midnight"] .history-modal-content {
+            background: var(--card); color: var(--text-main);
+        }
+        [data-theme="dark"] .hw-week-header,
+        [data-theme="midnight"] .hw-week-header {
+            background: var(--bg); border-color: var(--border);
+        }
+        [data-theme="dark"] .hw-task-list,
+        [data-theme="midnight"] .hw-task-list { border-color: var(--border); }
+        [data-theme="dark"] .hw-task-row,
+        [data-theme="midnight"] .hw-task-row { border-color: var(--border-light); }
+        [data-theme="dark"] .history-close-btn,
+        [data-theme="midnight"] .history-close-btn {
+            background: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .history-table th,
+        [data-theme="midnight"] .history-table th {
+            background: var(--card); border-color: var(--border);
+        }
+        [data-theme="dark"] .history-table td,
+        [data-theme="midnight"] .history-table td { border-color: var(--border); }
+        [data-theme="dark"] .delete-opt-btn,
+        [data-theme="midnight"] .delete-opt-btn {
+            background: var(--bg); border-color: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .week-history-btn,
+        [data-theme="midnight"] .week-history-btn {
+            background: var(--card); border-color: var(--border); color: var(--text-main);
+        }
+        [data-theme="dark"] .quote-strip,
+        [data-theme="midnight"] .quote-strip {
+            background: linear-gradient(135deg, rgba(129,140,248,0.1) 0%, rgba(167,139,250,0.06) 100%);
+            border-color: rgba(129,140,248,0.15);
+        }
+
+        /* ══════ FREQUENCY BADGE ══════ */
+        .freq-badge {
+            display: inline-block;
+            background: #ede9fe; color: #5b21b6;
+            border: 1px solid #ddd6fe;
+            font-size: 8px; font-weight: 700;
+            padding: 1px 5px; border-radius: 4px;
+            margin-left: 5px; vertical-align: middle;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        [data-theme="dark"] .freq-badge,
+        [data-theme="midnight"] .freq-badge {
+            background: rgba(139,92,246,0.15); color: #a78bfa; border-color: rgba(139,92,246,0.3);
+        }
+        /* Non-scheduled day cell */
+        .cell-not-scheduled {
+            background: repeating-linear-gradient(
+                45deg, transparent, transparent 2px,
+                rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px
+            ) !important;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+        [data-theme="dark"] .cell-not-scheduled,
+        [data-theme="midnight"] .cell-not-scheduled {
+            background: repeating-linear-gradient(
+                45deg, transparent, transparent 2px,
+                rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px
+            ) !important;
+        }
+
+        /* ══════ FREQUENCY SELECTOR IN MODAL ══════ */
+        .freq-selector { margin-bottom: 15px; }
+        .freq-type-row { display: flex; gap: 6px; margin-bottom: 8px; }
+        .freq-type-btn {
+            flex: 1; padding: 7px 4px; border: 1.5px solid var(--border);
+            border-radius: 8px; background: var(--card); color: var(--text-main);
+            font-size: 11px; font-weight: 600; cursor: pointer;
+            text-align: center; transition: all 0.12s;
+        }
+        .freq-type-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .freq-type-btn.active {
+            background: var(--primary); color: #fff; border-color: var(--primary);
+        }
+        .freq-days-row {
+            display: none; gap: 4px; flex-wrap: wrap; margin-top: 6px;
+        }
+        .freq-days-row.visible { display: flex; }
+        .freq-day-btn {
+            width: 34px; height: 30px; border: 1.5px solid var(--border);
+            border-radius: 6px; background: var(--card); color: var(--text-main);
+            font-size: 10px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.12s;
+        }
+        .freq-day-btn:hover { border-color: var(--primary); }
+        .freq-day-btn.active {
+            background: var(--primary); color: #fff; border-color: var(--primary);
+        }
+        .freq-interval-row {
+            display: none; align-items: center; gap: 8px; margin-top: 6px;
+        }
+        .freq-interval-row.visible { display: flex; }
+        .freq-interval-input {
+            width: 60px; padding: 6px 8px; border: 1px solid var(--border);
+            border-radius: 6px; font-size: 13px; font-weight: 700;
+            text-align: center; background: var(--input-bg); color: var(--text-main);
+        }
+        .freq-interval-label {
+            font-size: 12px; color: var(--text-sub); font-weight: 500;
+        }
 
         /* ═══════════════════════════════════════════════════════════════════
            PENDING TODAY — PREMIUM SECTION
@@ -1979,6 +2333,31 @@
                 </button>
                 <div class="topbar-sep"></div>
                 <span style="font-size:12px; font-weight:600; color:var(--text-sub);">Elite Routine Tracker</span>
+                <!-- Theme Picker -->
+                <div style="position:relative; margin-left:auto;" id="themePickerWrap">
+                    <button class="theme-trigger" onclick="toggleThemeDropdown()" title="Change theme" aria-label="Theme picker">
+                        🎨
+                    </button>
+                    <div class="theme-dropdown" id="themeDropdown">
+                        <div class="theme-dropdown-title">Choose Theme</div>
+                        <div id="themeOptions"></div>
+                        <div class="theme-custom-section" id="themeCustomSection">
+                            <div class="theme-color-row">
+                                <span class="theme-color-label">Primary</span>
+                                <input type="color" class="theme-color-input" id="customPrimary" value="#4f46e5">
+                            </div>
+                            <div class="theme-color-row">
+                                <span class="theme-color-label">Accent</span>
+                                <input type="color" class="theme-color-input" id="customSecondary" value="#8b5cf6">
+                            </div>
+                            <div class="theme-color-row">
+                                <span class="theme-color-label">Success</span>
+                                <input type="color" class="theme-color-input" id="customSuccess" value="#10b981">
+                            </div>
+                            <button class="theme-apply-btn" onclick="applyCustomTheme()">Apply Custom Colors</button>
+                        </div>
+                    </div>
+                </div>
                 <!-- Shown only when the quote strip is collapsed -->
                 <button class="quote-expand-btn" id="quoteExpandBtn"
                         onclick="expandQuote()"
@@ -2134,6 +2513,33 @@
                 <option value="">— No Section (Ungrouped) —</option>
                 <!-- populated dynamically from dividers array -->
             </select>
+            <!-- End Date -->
+            <label class="modal-label">
+                Frequency
+                <span style="color:var(--text-sub); font-weight:400;">(how often)</span>
+            </label>
+            <div class="freq-selector" id="freqSelector">
+                <div class="freq-type-row">
+                    <button type="button" class="freq-type-btn active" data-freq="daily" onclick="setFreqType('daily')">Daily</button>
+                    <button type="button" class="freq-type-btn" data-freq="specific_days" onclick="setFreqType('specific_days')">Specific Days</button>
+                    <button type="button" class="freq-type-btn" data-freq="interval" onclick="setFreqType('interval')">Every N Days</button>
+                </div>
+                <div class="freq-days-row" id="freqDaysRow">
+                    <button type="button" class="freq-day-btn" data-day="Mon" onclick="toggleFreqDay(this)">Mo</button>
+                    <button type="button" class="freq-day-btn" data-day="Tue" onclick="toggleFreqDay(this)">Tu</button>
+                    <button type="button" class="freq-day-btn" data-day="Wed" onclick="toggleFreqDay(this)">We</button>
+                    <button type="button" class="freq-day-btn" data-day="Thu" onclick="toggleFreqDay(this)">Th</button>
+                    <button type="button" class="freq-day-btn" data-day="Fri" onclick="toggleFreqDay(this)">Fr</button>
+                    <button type="button" class="freq-day-btn" data-day="Sat" onclick="toggleFreqDay(this)">Sa</button>
+                    <button type="button" class="freq-day-btn" data-day="Sun" onclick="toggleFreqDay(this)">Su</button>
+                </div>
+                <div class="freq-interval-row" id="freqIntervalRow">
+                    <span class="freq-interval-label">Every</span>
+                    <input type="number" id="freqIntervalInput" class="freq-interval-input" min="2" max="30" value="2">
+                    <span class="freq-interval-label">days</span>
+                </div>
+            </div>
+
             <!-- End Date -->
             <label class="modal-label">
                 End Date
@@ -2331,6 +2737,233 @@
         const charts = { lineChart: null, pieChart: null, bestChart: null, worstChart: null,
                          wtDonutChart: null, wtBarChart: null };
 
+        // ═══════════════════════════════════════════════════════════════════
+        // THEME SYSTEM
+        // ═══════════════════════════════════════════════════════════════════
+        const THEMES = [
+            { id: 'light',    name: 'Light',    swatch: 'linear-gradient(135deg, #4f46e5, #8b5cf6)' },
+            { id: 'dark',     name: 'Dark',     swatch: 'linear-gradient(135deg, #818cf8, #1e293b)' },
+            { id: 'ocean',    name: 'Ocean',    swatch: 'linear-gradient(135deg, #0891b2, #06b6d4)' },
+            { id: 'forest',   name: 'Forest',   swatch: 'linear-gradient(135deg, #059669, #10b981)' },
+            { id: 'sunset',   name: 'Sunset',   swatch: 'linear-gradient(135deg, #ea580c, #f97316)' },
+            { id: 'rose',     name: 'Rose',     swatch: 'linear-gradient(135deg, #e11d48, #f43f5e)' },
+            { id: 'midnight', name: 'Midnight', swatch: 'linear-gradient(135deg, #a78bfa, #020617)' },
+            { id: 'custom',   name: 'Custom',   swatch: 'conic-gradient(#ef4444, #f59e0b, #22c55e, #3b82f6, #8b5cf6, #ef4444)' }
+        ];
+        let _currentTheme = 'light';
+
+        function _themeStorageKey() {
+            return currentUser ? `theme_${currentUser.id}` : 'theme_guest';
+        }
+
+        function initThemeSystem() {
+            const saved = localStorage.getItem(_themeStorageKey());
+            if (saved) {
+                if (saved.startsWith('custom:')) {
+                    _currentTheme = 'custom';
+                    const colors = JSON.parse(saved.substring(7));
+                    _applyCustomColors(colors);
+                } else {
+                    applyTheme(saved, false);
+                }
+            }
+            renderThemeOptions();
+        }
+
+        function renderThemeOptions() {
+            const container = document.getElementById('themeOptions');
+            if (!container) return;
+            container.innerHTML = '';
+            THEMES.forEach(t => {
+                const opt = document.createElement('div');
+                opt.className = 'theme-option' + (_currentTheme === t.id ? ' active' : '');
+                opt.innerHTML = `
+                    <div class="theme-swatch" style="background:${t.swatch};"></div>
+                    <span class="theme-option-name">${t.name}</span>
+                    <span class="theme-option-check">✓</span>`;
+                opt.onclick = () => {
+                    if (t.id === 'custom') {
+                        document.getElementById('themeCustomSection').classList.add('visible');
+                        _currentTheme = 'custom';
+                        renderThemeOptions();
+                    } else {
+                        document.getElementById('themeCustomSection').classList.remove('visible');
+                        applyTheme(t.id, true);
+                    }
+                };
+                container.appendChild(opt);
+            });
+        }
+
+        function applyTheme(themeId, persist = true) {
+            _currentTheme = themeId;
+            if (themeId === 'light') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', themeId);
+            }
+            // Remove any custom inline CSS vars
+            ['--primary','--secondary','--success'].forEach(v =>
+                document.documentElement.style.removeProperty(v));
+            if (persist) localStorage.setItem(_themeStorageKey(), themeId);
+            renderThemeOptions();
+            // Re-render charts with proper colors
+            if (habits.length > 0) updateAnalytics();
+            if (weeklyTasks.length > 0) updateWeeklyAnalytics();
+        }
+
+        function _applyCustomColors(colors) {
+            document.documentElement.removeAttribute('data-theme');
+            if (colors.primary)   document.documentElement.style.setProperty('--primary', colors.primary);
+            if (colors.secondary) document.documentElement.style.setProperty('--secondary', colors.secondary);
+            if (colors.success)   document.documentElement.style.setProperty('--success', colors.success);
+            // Set gradients based on custom primary
+            document.documentElement.style.setProperty('--auth-gradient',
+                `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary || colors.primary} 100%)`);
+            document.documentElement.style.setProperty('--month-nav-gradient',
+                `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary || colors.primary} 100%)`);
+        }
+
+        function applyCustomTheme() {
+            const primary   = document.getElementById('customPrimary').value;
+            const secondary = document.getElementById('customSecondary').value;
+            const success   = document.getElementById('customSuccess').value;
+            const colors = { primary, secondary, success };
+            _currentTheme = 'custom';
+            _applyCustomColors(colors);
+            localStorage.setItem(_themeStorageKey(), 'custom:' + JSON.stringify(colors));
+            renderThemeOptions();
+            if (habits.length > 0) updateAnalytics();
+            if (weeklyTasks.length > 0) updateWeeklyAnalytics();
+        }
+
+        function toggleThemeDropdown() {
+            const dd = document.getElementById('themeDropdown');
+            dd.classList.toggle('open');
+        }
+
+        // Close dropdown on outside click
+        document.addEventListener('mousedown', (e) => {
+            const wrap = document.getElementById('themePickerWrap');
+            const dd   = document.getElementById('themeDropdown');
+            if (wrap && dd && dd.classList.contains('open') && !wrap.contains(e.target)) {
+                dd.classList.remove('open');
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════════════
+        // HABIT FREQUENCY SYSTEM
+        // ═══════════════════════════════════════════════════════════════════
+        // frequency_type: 'daily' | 'specific_days' | 'interval'
+        // frequency_value: null | '["Mon","Wed","Fri"]' | '3'
+
+        let _freqType = 'daily';
+        let _freqDays = new Set();
+
+        function setFreqType(type) {
+            _freqType = type;
+            document.querySelectorAll('.freq-type-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.freq === type);
+            });
+            document.getElementById('freqDaysRow').classList.toggle('visible', type === 'specific_days');
+            document.getElementById('freqIntervalRow').classList.toggle('visible', type === 'interval');
+        }
+
+        function toggleFreqDay(btn) {
+            const day = btn.dataset.day;
+            if (_freqDays.has(day)) { _freqDays.delete(day); btn.classList.remove('active'); }
+            else                   { _freqDays.add(day);     btn.classList.add('active'); }
+        }
+
+        function getFreqFromModal() {
+            if (_freqType === 'daily') return { type: 'daily', value: null };
+            if (_freqType === 'specific_days') {
+                const days = Array.from(_freqDays);
+                return { type: 'specific_days', value: days.length > 0 ? JSON.stringify(days) : null };
+            }
+            if (_freqType === 'interval') {
+                const n = parseInt(document.getElementById('freqIntervalInput').value, 10);
+                return { type: 'interval', value: (!isNaN(n) && n >= 2) ? String(n) : null };
+            }
+            return { type: 'daily', value: null };
+        }
+
+        function setFreqInModal(type, value) {
+            _freqType = type || 'daily';
+            _freqDays = new Set();
+
+            // Reset all UI
+            document.querySelectorAll('.freq-type-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.freq === _freqType);
+            });
+            document.querySelectorAll('.freq-day-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('freqDaysRow').classList.toggle('visible', _freqType === 'specific_days');
+            document.getElementById('freqIntervalRow').classList.toggle('visible', _freqType === 'interval');
+            document.getElementById('freqIntervalInput').value = '2';
+
+            if (_freqType === 'specific_days' && value) {
+                try {
+                    const days = JSON.parse(value);
+                    days.forEach(d => _freqDays.add(d));
+                    document.querySelectorAll('.freq-day-btn').forEach(b => {
+                        b.classList.toggle('active', _freqDays.has(b.dataset.day));
+                    });
+                } catch(e) {}
+            } else if (_freqType === 'interval' && value) {
+                document.getElementById('freqIntervalInput').value = value;
+            }
+        }
+
+        // Core: Is a specific calendar day scheduled for this habit?
+        const _DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+        function isScheduledDay(habit, year, month, day) {
+            const freqType  = habit.frequency_type || 'daily';
+            const freqValue = habit.frequency_value;
+
+            if (freqType === 'daily') return true;
+
+            if (freqType === 'specific_days' && freqValue) {
+                try {
+                    const allowedDays = JSON.parse(freqValue);   // e.g. ["Mon","Wed","Fri"]
+                    const d = new Date(year, month, day);
+                    const dayName = _DAY_NAMES[d.getDay()];
+                    return allowedDays.includes(dayName);
+                } catch(e) { return true; }
+            }
+
+            if (freqType === 'interval' && freqValue) {
+                const interval = parseInt(freqValue, 10);
+                if (isNaN(interval) || interval < 2) return true;
+                // Calculate days since habit creation
+                const created = new Date(habit.created_at);
+                created.setHours(0, 0, 0, 0);
+                const target = new Date(year, month, day);
+                target.setHours(0, 0, 0, 0);
+                const diffDays = Math.round((target - created) / (1000 * 60 * 60 * 24));
+                return diffDays >= 0 && (diffDays % interval === 0);
+            }
+
+            return true;
+        }
+
+        // Build a frequency badge label
+        function getFreqBadgeLabel(habit) {
+            const ft = habit.frequency_type || 'daily';
+            if (ft === 'daily') return '';
+            if (ft === 'specific_days' && habit.frequency_value) {
+                try {
+                    const days = JSON.parse(habit.frequency_value);
+                    const short = days.map(d => d.substring(0, 2));
+                    return short.join(', ');
+                } catch(e) { return ''; }
+            }
+            if (ft === 'interval' && habit.frequency_value) {
+                return `Every ${habit.frequency_value}d`;
+            }
+            return '';
+        }
+
         // ─── Auth ──────────────────────────────────────────────────────────────────
         function switchToSignup() {
             document.getElementById('loginForm').style.display = 'none';
@@ -2521,11 +3154,12 @@
                 document.getElementById('authScreen').style.display = 'none';
                 document.getElementById('appContainer').classList.add('active');
                 document.getElementById('userName').textContent = currentUser.email;
+                initThemeSystem();
                 initSidebar();
                 updateMonthDisplay();
                 await loadHabits();
                 await loadWeeklyTasks();
-                initQuote();        // ← non-blocking; runs after core data loads
+                initQuote();
             } catch (e) { alert('Failed to initialize app: ' + e.message); }
         }
 
@@ -2951,12 +3585,16 @@
                 select.value   = habit.divider_id || '';
                 endInput.value = habit.end_date   || '';
                 hint.style.display = habit.end_date ? 'block' : 'none';
+                // Populate frequency
+                setFreqInModal(habit.frequency_type || 'daily', habit.frequency_value || null);
             } else {
                 document.getElementById('modalTitle').textContent = 'Add Habit';
                 input.value    = '';
                 select.value   = '';
                 endInput.value = '';
                 hint.style.display = 'none';
+                // Reset frequency to daily
+                setFreqInModal('daily', null);
             }
 
             // Show hint when user picks a date
@@ -2977,15 +3615,25 @@
             try {
                 const name      = document.getElementById('habitName').value.trim();
                 const dividerId = document.getElementById('habitDivider').value || null;
-                const endDateRaw = document.getElementById('habitEndDate').value; // "YYYY-MM-DD" or ""
-                const endDate   = endDateRaw || null; // null = ongoing
+                const endDateRaw = document.getElementById('habitEndDate').value;
+                const endDate   = endDateRaw || null;
+                const freq      = getFreqFromModal();
 
                 if (!name) { alert('Please enter a habit name'); return; }
+
+                // Validate frequency
+                if (freq.type === 'specific_days' && !freq.value) {
+                    alert('Please select at least one day of the week.'); return;
+                }
+                if (freq.type === 'interval' && !freq.value) {
+                    alert('Please enter a valid interval (2 or more days).'); return;
+                }
 
                 if (editingHabitId) {
                     const { error } = await supabaseClient
                         .from('habits')
-                        .update({ name, divider_id: dividerId, end_date: endDate })
+                        .update({ name, divider_id: dividerId, end_date: endDate,
+                                  frequency_type: freq.type, frequency_value: freq.value })
                         .eq('id', editingHabitId)
                         .eq('user_id', currentUser.id);
                     if (error) throw error;
@@ -2996,7 +3644,8 @@
                     const { error } = await supabaseClient
                         .from('habits')
                         .insert({ name, user_id: currentUser.id, position: maxPos + 1,
-                                  divider_id: dividerId, end_date: endDate });
+                                  divider_id: dividerId, end_date: endDate,
+                                  frequency_type: freq.type, frequency_value: freq.value });
                     if (error) throw error;
                 }
 
@@ -3230,6 +3879,8 @@
                         if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth
                                 && day > ed.getDate()) return;
                     }
+                    // Skip non-scheduled days (frequency-aware)
+                    if (!isScheduledDay(habit, selectedYear, selectedMonth, day)) return;
                     setCellPctSilent(habit.id, day, targetPct);
                 });
                 renderTable();
@@ -3251,7 +3902,8 @@
                         if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth
                                 && d > ed.getDate()) return false;
                     }
-                    return true;
+                    // Only count habits that are scheduled on this day
+                    return isScheduledDay(h, selectedYear, selectedMonth, d);
                 });
 
                 if (activeHabits.length === 0) { gcb.checked = false; gcb.indeterminate = false; continue; }
@@ -3467,7 +4119,7 @@
                                 && selectedMonth === now.getMonth();
             if (!isCurrentMonth) { card.style.display = 'none'; return; }
 
-            // Filter: habits active today
+            // Filter: habits active AND scheduled today (frequency-aware)
             const activeToday = habits.filter(h => {
                 const cd = new Date(h.created_at);
                 if (cd.getFullYear() === selectedYear && cd.getMonth() === selectedMonth
@@ -3478,6 +4130,8 @@
                         && today > ed.getDate()) return false;
                     if (ed < new Date(selectedYear, selectedMonth, 1)) return false;
                 }
+                // Respect frequency: skip if today is not a scheduled day
+                if (!isScheduledDay(h, selectedYear, selectedMonth, today)) return false;
                 return true;
             });
 
@@ -3721,13 +4375,15 @@
                 }
             }
 
-            // ── Weighted score: 100% = 1.0, 50% = 0.5, etc. ─────────────────────
+            // ── Weighted score: only count SCHEDULED days ─────────────────────
             let score = 0;
+            let scheduledDays = 0;
             for (let d = startDay; d <= endDay; d++) {
+                if (!isScheduledDay(habit, selectedYear, selectedMonth, d)) continue;
+                scheduledDays++;
                 score += (completions[`${habit.id}-${d}`] || 0) / 100;
             }
-            const validDays  = Math.max(0, endDay - startDay + 1);
-            const avgPct     = validDays > 0 ? Math.round((score / validDays) * 100) : 0;
+            const avgPct     = scheduledDays > 0 ? Math.round((score / scheduledDays) * 100) : 0;
             const scoreLabel = Number.isInteger(score) ? score : score.toFixed(1);
 
             const isHidden = habit.divider_id && collapsedSections.has(habit.divider_id);
@@ -3754,11 +4410,18 @@
                 endBadgeHtml = `<span class="end-date-badge" title="Ends ${label}">Ends ${label}</span>`;
             }
 
+            // Frequency badge
+            let freqBadgeHtml = '';
+            const freqLabel = getFreqBadgeLabel(habit);
+            if (freqLabel) {
+                freqBadgeHtml = `<span class="freq-badge" title="Frequency: ${escapeHtml(freqLabel)}">${escapeHtml(freqLabel)}</span>`;
+            }
+
             tr.innerHTML = `
                 <td class="habit-col">
                     ${dragHandle}
                     <div class="habit-name-scroll" title="${escapeHtml(habit.name)}">
-                        ${escapeHtml(habit.name)}${endBadgeHtml}
+                        ${escapeHtml(habit.name)}${freqBadgeHtml}${endBadgeHtml}
                     </div>
                 </td>
                 <td class="stats-col">${scoreLabel}</td>
@@ -3787,8 +4450,15 @@
                     el.className = 'pct-cell pct-disabled';
                     td.appendChild(el);
 
+                } else if (!isScheduledDay(habit, selectedYear, selectedMonth, d)) {
+                    // (C) not scheduled — hatched/disabled
+                    td.classList.add('cell-not-scheduled');
+                    const el = document.createElement('div');
+                    el.className = 'pct-cell pct-disabled';
+                    td.appendChild(el);
+
                 } else {
-                    // (C) normal interactive cell
+                    // (D) normal interactive cell
                     const cellPct = completions[`${habit.id}-${d}`] || 0;
                     const el = buildPctCell(cellPct);
                     td.appendChild(el);
@@ -3935,9 +4605,12 @@
                         }
                     }
 
-                    const validDays = Math.max(0, endDay - startDay + 1);
+                    // Only count scheduled days (frequency-aware)
+                    let validDays = 0;
                     let score = 0;
                     for (let d = startDay; d <= endDay; d++) {
+                        if (!isScheduledDay(habit, selectedYear, selectedMonth, d)) continue;
+                        validDays++;
                         score += (completions[`${habit.id}-${d}`] || 0) / 100;
                     }
                     const pct = validDays > 0 ? (score / validDays) * 100 : 0;
@@ -3968,7 +4641,7 @@
                 document.getElementById('worstName').textContent  = worst.name;
                 document.getElementById('worstScore').textContent = `${worst.pct.toFixed(1)}% avg`;
 
-                // Line chart — per-day average completion %
+                // Line chart — per-day average completion % (frequency-aware)
                 const dailyPerf = Array.from({ length: daysInMonth }, (_, i) => {
                     const day = i + 1;
                     const dayHabits = habits.filter(h => {
@@ -3980,7 +4653,8 @@
                             if (ed.getFullYear() === selectedYear && ed.getMonth() === selectedMonth
                                     && day > ed.getDate()) return false;
                         }
-                        return true;
+                        // Only include if this day is scheduled for the habit
+                        return isScheduledDay(h, selectedYear, selectedMonth, day);
                     });
                     if (dayHabits.length === 0) return 0;
                     const total = dayHabits.reduce((sum, h) => sum + (completions[`${h.id}-${day}`] || 0), 0);
@@ -3988,12 +4662,16 @@
                 });
 
                 if (charts.lineChart) charts.lineChart.destroy();
+                const _cs = getComputedStyle(document.documentElement);
+                const _pri = _cs.getPropertyValue('--primary').trim() || '#4f46e5';
+                const _suc = _cs.getPropertyValue('--success').trim() || '#10b981';
+                const _dan = _cs.getPropertyValue('--danger').trim() || '#ef4444';
                 charts.lineChart = new Chart(document.getElementById('lineChart'), {
                     type: 'line',
                     data: {
                         labels: Array.from({ length: daysInMonth }, (_, i) => i + 1),
-                        datasets: [{ data: dailyPerf, borderColor: '#4f46e5', tension: 0.4,
-                            fill: true, backgroundColor: 'rgba(79,70,229,0.05)', pointRadius: 2 }]
+                        datasets: [{ data: dailyPerf, borderColor: _pri, tension: 0.4,
+                            fill: true, backgroundColor: _pri + '0D', pointRadius: 2 }]
                     },
                     options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
                         scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } },
@@ -4008,7 +4686,7 @@
                             parseFloat(totalScore.toFixed(2)),
                             parseFloat((totalPossible - totalScore).toFixed(2))
                         ],
-                        backgroundColor: ['#10b981','#f1f5f9'], borderWidth: 0 }] },
+                        backgroundColor: [_suc, '#f1f5f9'], borderWidth: 0 }] },
                     options: { maintainAspectRatio: false, cutout: '70%',
                         plugins: { legend: { position: 'bottom' } } }
                 });
@@ -4020,7 +4698,7 @@
                     data: {
                         labels: top5Best.map(s => s.name.length > 15 ? s.name.substring(0,15)+'…' : s.name),
                         datasets: [{ data: top5Best.map(s => parseFloat(s.pct.toFixed(1))),
-                                     backgroundColor: '#10b981', borderRadius: 4 }]
+                                     backgroundColor: _suc, borderRadius: 4 }]
                     },
                     options: { indexAxis: 'y', maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
@@ -4034,7 +4712,7 @@
                     data: {
                         labels: top5Worst.map(s => s.name.length > 15 ? s.name.substring(0,15)+'…' : s.name),
                         datasets: [{ data: top5Worst.map(s => parseFloat(s.pct.toFixed(1))),
-                                     backgroundColor: '#ef4444', borderRadius: 4 }]
+                                     backgroundColor: _dan, borderRadius: 4 }]
                     },
                     options: { indexAxis: 'y', maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
@@ -4129,32 +4807,58 @@
                 document.getElementById('wtDoneVal').textContent   = doneLabel;
                 document.getElementById('wtMissedVal').textContent = missedLabel;
 
-                if (cur.possible === 0) return;
+                // ── BUG FIX: Always render charts, even with empty current month ──
+                // Check if ANY month in the range has data (not just current month)
+                const anyData = monthStats.some(m => m.possible > 0);
+
+                // Theme-aware colors
+                const _wcs = getComputedStyle(document.documentElement);
+                const _wsuc = _wcs.getPropertyValue('--success').trim() || '#10b981';
+                const _wsec = _wcs.getPropertyValue('--secondary').trim() || '#8b5cf6';
 
                 if (charts.wtDonutChart) charts.wtDonutChart.destroy();
-                charts.wtDonutChart = new Chart(document.getElementById('wtDonutChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Done', 'Missed'],
-                        datasets: [{
-                            data: [
-                                parseFloat(cur.done.toFixed(2)),
-                                parseFloat(cur.missed.toFixed(2))
-                            ],
-                            backgroundColor: ['#10b981', '#fee2e2'],
-                            borderColor:     ['#059669', '#fca5a5'],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        maintainAspectRatio: false, cutout: '70%',
-                        plugins: {
-                            legend: { position: 'bottom', labels: { font: { size: 10 } } },
-                            tooltip: { callbacks: { label: ctx => ` ${parseFloat(ctx.parsed.toFixed(1))} task equiv.` } }
+                if (cur.possible > 0) {
+                    charts.wtDonutChart = new Chart(document.getElementById('wtDonutChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Done', 'Missed'],
+                            datasets: [{
+                                data: [
+                                    parseFloat(cur.done.toFixed(2)),
+                                    parseFloat(cur.missed.toFixed(2))
+                                ],
+                                backgroundColor: [_wsuc, '#fee2e2'],
+                                borderColor:     [_wsuc, '#fca5a5'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false, cutout: '70%',
+                            plugins: {
+                                legend: { position: 'bottom', labels: { font: { size: 10 } } },
+                                tooltip: { callbacks: { label: ctx => ` ${parseFloat(ctx.parsed.toFixed(1))} task equiv.` } }
+                            }
                         }
-                    }
-                });
+                    });
+                } else {
+                    // Empty donut with "No data" label
+                    charts.wtDonutChart = new Chart(document.getElementById('wtDonutChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['No data yet'],
+                            datasets: [{ data: [1], backgroundColor: ['#f1f5f9'], borderWidth: 0 }]
+                        },
+                        options: {
+                            maintainAspectRatio: false, cutout: '70%',
+                            plugins: {
+                                legend: { position: 'bottom', labels: { font: { size: 10 } } },
+                                tooltip: { enabled: false }
+                            }
+                        }
+                    });
+                }
 
+                // Bar chart always renders — shows all 4 months regardless
                 if (charts.wtBarChart) charts.wtBarChart.destroy();
                 charts.wtBarChart = new Chart(document.getElementById('wtBarChart'), {
                     type: 'bar',
@@ -4164,7 +4868,7 @@
                             label: '% Done',
                             data:  monthStats.map(m => m.pct),
                             backgroundColor: monthStats.map((m, i) =>
-                                i === monthStats.length - 1 ? '#8b5cf6' : '#c4b5fd'
+                                i === monthStats.length - 1 ? _wsec : (_wsec + '66')
                             ),
                             borderRadius: 4,
                             barPercentage: 0.6
