@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Routine Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- Auth Screen -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-card">
+            <h1>Elite Routine Tracker</h1>
+            <p>Track your daily habits and build consistency</p>
+            <div id="authError"></div>
+
+            <div id="loginForm">
+                <input type="email" id="loginEmail" class="auth-input" placeholder="Email">
+                <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
+                <a class="forgot-link" id="forgotLink">Forgot Password?</a>
+                <button class="auth-btn" id="loginBtn">Login</button>
+                <p class="auth-toggle">Don't have an account? <a id="loginToggleSignup">Sign up</a></p>
+            </div>
+
+            <div id="signupForm" style="display: none;">
+                <input type="email" id="signupEmail" class="auth-input" placeholder="Email">
+                <input type="password" id="signupPassword" class="auth-input" placeholder="Password">
+                <button class="auth-btn" id="signupBtn">Sign Up</button>
+                <p class="auth-toggle">Already have an account? <a id="signupToggleLogin">Login</a></p>
+            </div>
+
+            <!-- ── Forgot Password Form ───────────────────────────── -->
+            <div id="forgotPasswordForm" style="display: none;">
+                <p class="form-subtitle">Enter your registered email and we'll send you a secure reset link valid for 1 hour.</p>
+                <input type="email" id="forgotEmail" class="auth-input" placeholder="Your registered email">
+                <button class="auth-btn" id="forgotBtn">Send Reset Link</button>
+                <p class="auth-toggle auth-toggle--spaced">
+                    Remember your password? <a id="forgotToggleLogin">Back to Login</a>
+                </p>
+            </div>
+
+            <!-- ── Reset Password Form (shown after clicking email link) ── -->
+            <div id="resetPasswordForm" style="display: none;">
+                <p class="form-subtitle">Choose a strong new password for your account.</p>
+                <input type="password" id="newPassword" class="auth-input" placeholder="New password (min. 8 characters)">
+                <div id="strengthIndicator" class="password-strength"></div>
+                <input type="password" id="confirmPassword" class="auth-input" placeholder="Confirm new password">
+                <button class="auth-btn" id="resetBtn">Update Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+
+        <!-- ── Mobile backdrop (dims content behind open sidebar on small screens) ── -->
+        <div id="sidebarOverlay"></div>
+
+        <!-- ── Sidebar — push on desktop, overlay on mobile ── -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-inner">
+                <div class="sidebar-header">
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p id="userName">Loading...</p>
+                    </div>
+                    <div class="sidebar-header-actions">
+                        <button class="logout-btn" id="logoutBtn">Logout</button>
+                        <button class="sidebar-close-btn" id="sidebarCloseBtn" title="Close">✕</button>
+                    </div>
+                </div>
+
+                <!-- Month Navigation -->
+                <div class="month-nav">
+                    <div class="month-nav-title" id="currentMonthDisplay"></div>
+                    <div class="month-nav-controls">
+                        <button class="month-nav-btn" id="monthPrevBtn">← Prev</button>
+                        <button class="month-nav-btn month-nav-btn-current" id="monthTodayBtn">Today</button>
+                        <button class="month-nav-btn" id="monthNextBtn">Next →</button>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Overall Completion</h3>
+                    <span class="val" id="overallVal">0%</span>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Best Habit</h3>
+                    <span class="val" id="bestName">No habits yet</span>
+                    <small id="bestScore"></small>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Needs Work</h3>
+                    <span class="val" id="worstName">Add habits to start</span>
+                    <small id="worstScore"></small>
+                </div>
+
+                <div class="chart-container">
+                    <span class="chart-label">Daily Performance</span>
+                    <canvas id="lineChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <span class="chart-label">Overall Completion</span>
+                    <canvas id="pieChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <span class="chart-label">Top 5 Habits</span>
+                    <canvas id="bestChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <span class="chart-label">Bottom 5 Habits</span>
+                    <canvas id="worstChart"></canvas>
+                </div>
+
+                <!-- ── Weekly Tasks Analytics ───────────────────── -->
+                <hr class="sidebar-section-divider">
+                <div class="sidebar-section-label">Weekly Tasks</div>
+
+                <div class="sidebar-stat-pair">
+                    <div class="stat-card stat-card--half">
+                        <h3>Done This Month</h3>
+                        <span class="val" id="wtDoneVal">—</span>
+                    </div>
+                    <div class="stat-card stat-card--half">
+                        <h3>Missed This Month</h3>
+                        <span class="val" id="wtMissedVal">—</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <span class="chart-label">This Month (Done vs Missed)</span>
+                    <canvas id="wtDonutChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <span class="chart-label">Monthly Trend (last 4 months)</span>
+                    <canvas id="wtBarChart"></canvas>
+                </div>
+
+            </div><!-- /.sidebar-inner -->
+        </div><!-- /.sidebar -->
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+            <!-- ── Sticky top bar with the toggle button ── -->
+            <div class="main-topbar">
+                <button class="topbar-toggle" id="sidebarToggle"
+                        aria-label="Toggle dashboard panel"
+                        title="Toggle analytics dashboard">
+                    <span class="topbar-toggle-icon" id="toggleIcon">☰</span>
+                    <span id="toggleLabel">Dashboard</span>
+                </button>
+                <div class="topbar-sep"></div>
+                <span class="topbar-brand">Elite Routine Tracker</span>
+                <!-- Theme Picker -->
+                <div class="theme-picker-wrap" id="themePickerWrap">
+                    <button class="theme-trigger" id="themeTrigger" title="Change theme" aria-label="Theme picker">
+                        🎨
+                    </button>
+                    <div class="theme-dropdown" id="themeDropdown">
+                        <div class="theme-dropdown-title">Choose Theme</div>
+                        <div id="themeOptions"></div>
+                        <div class="theme-custom-section" id="themeCustomSection">
+                            <div class="theme-color-row">
+                                <span class="theme-color-label">Primary</span>
+                                <input type="color" class="theme-color-input" id="customPrimary" value="#4f46e5">
+                            </div>
+                            <div class="theme-color-row">
+                                <span class="theme-color-label">Accent</span>
+                                <input type="color" class="theme-color-input" id="customSecondary" value="#8b5cf6">
+                            </div>
+                            <div class="theme-color-row">
+                                <span class="theme-color-label">Success</span>
+                                <input type="color" class="theme-color-input" id="customSuccess" value="#10b981">
+                            </div>
+                            <button class="theme-apply-btn" id="themeApplyBtn">Apply Custom Colors</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Shown only when the quote strip is collapsed -->
+                <button class="quote-expand-btn" id="quoteExpandBtn"
+                        title="Show today's quote"
+                        aria-label="Show daily quote">
+                    ✦ Quote
+                </button>
+            </div>
+
+            <!-- Scrollable content wrapper -->
+            <div class="main-scroll">
+
+                <!-- ── Daily Quote Strip ─────────────────────────────────────────
+                     First content the user sees. Collapses for the session.
+                     NOTE: keep style="display:none" inline — JS unhides it via
+                     `strip.style.display = ''`, which depends on no CSS rule.
+                     ──────────────────────────────────────────────────────────── -->
+                <div class="quote-strip" id="quoteStrip" style="display:none;">
+                    <div class="quote-strip-inner">
+                        <div class="quote-accent"></div>
+                        <div class="quote-body">
+                            <div class="quote-text" id="quoteText">…</div>
+                            <div class="quote-author" id="quoteAuthor"></div>
+                        </div>
+                        <button class="quote-hide-btn" id="quoteHideBtn"
+                                title="Hide for today" aria-label="Hide quote">∧</button>
+                    </div>
+                </div>
+
+                <!-- Save/Discard Section -->
+                <div class="save-section" id="saveSection">
+                    <div class="changes-indicator" id="changesIndicator" style="display: none;">
+                        <span class="dot"></span>
+                        <span id="changesCount">0 unsaved changes</span>
+                    </div>
+                    <div class="save-controls">
+                        <button class="discard-btn" id="discardBtn" disabled>
+                            Discard Changes
+                        </button>
+                        <button class="save-btn" id="saveBtn" disabled>
+                            Save All Changes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     PENDING TODAY — PREMIUM
+                     NOTE: keep style="display:none" inline — JS unhides via
+                     `card.style.display = ''` which depends on no CSS rule.
+                     ═══════════════════════════════════════ -->
+                <div class="pending-card state-active" id="pendingCard" style="display:none;">
+                    <div class="pending-top" id="pendingTop">
+                        <div class="pending-ring-wrap">
+                            <svg viewBox="0 0 88 88" id="pendingRingSvg">
+                                <circle class="pending-ring-track" cx="44" cy="44" r="36" />
+                                <circle class="pending-ring-fill" cx="44" cy="44" r="36"
+                                    id="pendingRingFill"
+                                    stroke-dasharray="226.2"
+                                    stroke-dashoffset="226.2"
+                                    transform="rotate(-90 44 44)" />
+                            </svg>
+                            <div class="pending-ring-center">
+                                <span class="pending-ring-num" id="pendingRingNum">0</span>
+                                <span class="pending-ring-den" id="pendingRingDen">of 0</span>
+                                <span class="pending-ring-check">✓</span>
+                            </div>
+                        </div>
+                        <div class="pending-info">
+                            <div class="pending-label">
+                                Pending Today
+                                <span class="pending-chevron" id="pendingChevron">▾</span>
+                                <span class="pending-collapsed-badge" id="pendingBadge"></span>
+                            </div>
+                            <div class="pending-motivation" id="pendingMotivation"></div>
+                            <div class="pending-sub" id="pendingSub"></div>
+                        </div>
+                    </div>
+                    <div class="pending-list" id="pendingList"></div>
+                </div>
+
+                <div class="table-section">
+                    <div class="section-title">
+                        <span>Daily Habits</span>
+                        <div class="section-title-actions">
+                            <!-- Add Section button -->
+                            <button class="add-section-btn" id="addSectionBtn">＋ Add Section</button>
+                            <button class="add-btn" id="addHabitBtn">+ Add Habit</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr id="headerRow">
+                                    <th class="habit-col">Habit</th>
+                                    <th class="stats-col">Done</th>
+                                    <th class="stats-col">%</th>
+                                    <!-- Day headers inserted dynamically -->
+                                    <th class="actions-col">Actions</th>
+                                </tr>
+                                <tr id="globalCheckboxRow">
+                                    <th class="habit-col"></th>
+                                    <th class="stats-col"></th>
+                                    <th class="stats-col"></th>
+                                    <!-- Global checkboxes inserted dynamically -->
+                                    <th class="actions-col"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="dailyBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     WEEKLY TASKS TRACKER
+                     ═══════════════════════════════════════ -->
+                <div class="weekly-section">
+                    <div class="section-title">
+                        <span>Weekly Tasks<span class="wt-archived-notice" id="wtArchivedNotice" style="display:none;">Read-only</span></span>
+                        <div class="wt-header-controls">
+                            <!-- Week navigation -->
+                            <div class="week-nav">
+                                <button class="week-nav-btn" id="weekPrevBtn">←</button>
+                                <span class="week-nav-label" id="weekLabel">—</span>
+                                <button class="week-nav-btn" id="weekNextBtn">→</button>
+                                <button class="week-today-btn" id="weekTodayBtn">Today</button>
+                            </div>
+                            <button class="week-history-btn" id="weekHistoryBtn">📋 History</button>
+                            <button class="add-btn" id="wtAddTaskBtn">+ Add Task</button>
+                        </div>
+                    </div>
+                    <div class="weekly-table-container">
+                        <table class="weekly-table">
+                            <thead>
+                                <tr>
+                                    <th class="wt-task-col">Task</th>
+                                    <th class="wt-done-col" id="weekStatusHeader">This Week</th>
+                                    <th class="wt-act-col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weeklyBody"></tbody>
+                        </table>
+                    </div>
+                </div><!-- /.weekly-section -->
+            </div><!-- /.main-scroll -->
+        </div><!-- /.main-content -->
+    </div><!-- /.app-container -->
+
+    <!-- =============================================
+         HABIT MODAL
+         ============================================= -->
+    <div class="modal" id="habitModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add Habit</h2>
+            <label class="modal-label">Habit Name</label>
+            <input type="text" id="habitName" class="modal-input" placeholder="e.g. Drink 2.5L Water">
+            <!-- Section selector -->
+            <label class="modal-label">Section <span class="modal-label-hint">(optional)</span></label>
+            <select id="habitDivider" class="modal-input">
+                <option value="">— No Section (Ungrouped) —</option>
+                <!-- populated dynamically from dividers array -->
+            </select>
+            <!-- Frequency -->
+            <label class="modal-label">
+                Frequency
+                <span class="modal-label-hint">(how often)</span>
+            </label>
+            <div class="freq-selector" id="freqSelector">
+                <div class="freq-type-row">
+                    <button type="button" class="freq-type-btn active" data-freq="daily">Daily</button>
+                    <button type="button" class="freq-type-btn" data-freq="specific_days">Specific Days</button>
+                    <button type="button" class="freq-type-btn" data-freq="interval">Every N Days</button>
+                </div>
+                <div class="freq-days-row" id="freqDaysRow">
+                    <button type="button" class="freq-day-btn" data-day="Mon">Mo</button>
+                    <button type="button" class="freq-day-btn" data-day="Tue">Tu</button>
+                    <button type="button" class="freq-day-btn" data-day="Wed">We</button>
+                    <button type="button" class="freq-day-btn" data-day="Thu">Th</button>
+                    <button type="button" class="freq-day-btn" data-day="Fri">Fr</button>
+                    <button type="button" class="freq-day-btn" data-day="Sat">Sa</button>
+                    <button type="button" class="freq-day-btn" data-day="Sun">Su</button>
+                </div>
+                <div class="freq-interval-row" id="freqIntervalRow">
+                    <span class="freq-interval-label">Every</span>
+                    <input type="number" id="freqIntervalInput" class="freq-interval-input" min="2" max="30" value="2">
+                    <span class="freq-interval-label">days</span>
+                </div>
+            </div>
+
+            <!-- End Date -->
+            <label class="modal-label">
+                End Date
+                <span class="modal-label-hint">(optional — leave blank for ongoing)</span>
+            </label>
+            <input type="date" id="habitEndDate" class="modal-input"
+                   title="After this date, checkboxes are disabled and the habit is hidden from future months">
+            <div id="endDateHint" style="display:none;">
+                📅 This habit will be hidden from months after the selected date.
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" id="habitModalCancelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="habitModalSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         DIVIDER MODAL
+         ============================================= -->
+    <div class="modal" id="dividerModal">
+        <div class="modal-content">
+            <h2 id="dividerModalTitle">Add Section</h2>
+            <label class="modal-label">Section Title</label>
+            <input type="text" id="dividerTitle" class="modal-input" placeholder="e.g. Morning Routine, High Priority…">
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" id="dividerModalCancelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="dividerModalSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         DELETE HABIT OPTIONS MODAL
+         ============================================= -->
+    <div class="modal" id="deleteHabitModal">
+        <div class="modal-content">
+            <h2>Remove Habit</h2>
+            <span class="delete-modal-habit-name" id="deleteHabitModalName"></span>
+            <span class="delete-modal-subtitle">Choose how you want to remove this habit:</span>
+
+            <!-- Option 1: Soft remove (set end_date) -->
+            <button class="delete-opt-btn" id="removeHabitFromMonthBtn">
+                📅 Remove from <span id="deleteModalMonthLabel">this month</span> onwards
+                <small>Sets an end date so the habit disappears from this and future months.
+                    All past completion data is preserved.</small>
+            </button>
+
+            <!-- Option 2: Hard delete -->
+            <button class="delete-opt-btn danger" id="deleteHabitForeverBtn">
+                🗑️ Delete forever
+                <small>Permanently removes the habit and ALL its history. This cannot be undone.</small>
+            </button>
+
+            <div class="modal-actions delete-modal-actions">
+                <button class="modal-btn modal-btn-secondary delete-modal-cancel-btn"
+                        id="deleteHabitModalCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         HISTORY MODAL
+         ============================================= -->
+    <div class="modal" id="historyModal">
+        <div class="history-modal-content">
+            <div class="history-modal-header">
+                <h2>📋 Weekly Task History</h2>
+                <button class="history-close-btn" id="historyCloseBtn">✕ Close</button>
+            </div>
+            <div id="historyContent">
+                <p class="history-empty">Loading history…</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         WEEKLY TASK MODAL
+         ============================================= -->
+    <div class="modal" id="weeklyTaskModal">
+        <div class="modal-content">
+            <h2 id="weeklyTaskModalTitle">Add Weekly Task</h2>
+            <label class="modal-label">Task Name</label>
+            <input type="text" id="weeklyTaskName" class="modal-input" placeholder="e.g. Review weekly goals, Clean workspace…">
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" id="weeklyTaskModalCancelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="weeklyTaskModalSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PARTIAL COMPLETION POPOVER
+         ============================================= -->
+    <div id="pctPopover" role="dialog" aria-label="Set completion">
+
+        <!-- Header: habit name + date + close -->
+        <div class="pop-header">
+            <span class="pop-title" id="popTitle">Set completion</span>
+            <button class="pop-close" id="popCloseBtn" title="Close">✕</button>
+        </div>
+
+        <!-- Quick-tap buttons -->
+        <div class="pop-quick">
+            <button class="pop-qbtn qbtn-clear" data-pct="0">✕ Clear</button>
+            <button class="pop-qbtn" data-pct="25">25%</button>
+            <button class="pop-qbtn" data-pct="50">50%</button>
+            <button class="pop-qbtn" data-pct="75">75%</button>
+            <button class="pop-qbtn qbtn-done" data-pct="100">✓ Done</button>
+        </div>
+
+        <hr class="pop-sep">
+
+        <!-- Time-based calculator -->
+        <div class="pop-section-label">⏱ Time Calculator</div>
+        <div class="pop-time-row">
+            <input type="number" id="popActual" class="pop-time-input"
+                   min="0" placeholder="Done">
+            <span class="pop-time-sep">of</span>
+            <input type="number" id="popTarget" class="pop-time-input"
+                   min="1" placeholder="Goal">
+            <span class="pop-time-sep pop-time-sep--unit">min</span>
+        </div>
+        <button class="pop-time-calc" id="popTimeCalcBtn">Calculate &amp; Apply</button>
+
+        <hr class="pop-sep">
+
+        <!-- Manual % stepper -->
+        <div class="pop-section-label">🎯 Custom %</div>
+        <div class="pop-stepper-row">
+            <button class="pop-step-btn" id="popStepDownBtn">−</button>
+            <input type="number" id="pctManualInput" min="0" max="100" step="5" value="0">
+            <button class="pop-step-btn" id="popStepUpBtn">+</button>
+            <button class="pop-set-btn" id="popSetBtn">Set</button>
+        </div>
+
+    </div>
+
+</body>
+</html>
